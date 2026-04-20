@@ -1,16 +1,38 @@
 {
   "name": "empowered-listening",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "version": "0.1.0",
+  "description": "Structured civic debate infrastructure for Empowered Vote.",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "preview": "npm run build && npx wrangler dev",
+    "deploy": "opennextjs-cloudflare build && wrangler deploy",
+    "lint": "next lint"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
+  "dependencies": {
+    "@empoweredvote/ev-ui": "^0.4.4",
+    "@opennextjs/cloudflare": "^1.19.2",
+    "@supabase/supabase-js": "^2.104.0",
+    "jose": "^6.2.2",
+    "next": "^16.2.4",
+    "pg": "^8.20.0",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "zod": "^4.3.6"
+  },
   "devDependencies": {
-    "supabase": "^2.93.0"
+    "@tailwindcss/postcss": "^4.2.2",
+    "@types/node": "^25.6.0",
+    "@types/pg": "^8.20.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "autoprefixer": "^10.5.0",
+    "postcss": "^8.5.10",
+    "supabase": "^2.93.0",
+    "tailwindcss": "^4.2.2",
+    "typescript": "^6.0.3",
+    "wrangler": "^4.84.0"
   }
 }

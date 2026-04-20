@@ -16,6 +16,10 @@ supabase/.temp/
 out/
 dist/
 
+# Cloudflare/Wrangler
+.wrangler/
+cloudflare-env.d.ts
+
 # OS
 .DS_Store
 Thumbs.db
@@ -25,5 +29,7 @@ Thumbs.db
 .idea/
 
 # Version-controlled (explicitly allowed):
+# - .env.example
+# - .dev.vars.example
 # - supabase/config.toml
 # - supabase/migrations/*.sql
