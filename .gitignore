@@ -12,13 +12,8 @@ supabase/.temp/
 
 # Build output
 .next/
-.open-next/
 out/
 dist/
-
-# Cloudflare/Wrangler
-.wrangler/
-cloudflare-env.d.ts
 
 # OS
 .DS_Store

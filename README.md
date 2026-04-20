@@ -7,8 +7,10 @@ live.  A permanent, searchable transcript is produced automatically.
 ## Stack
 
 - **Next.js 15+** with App Router and Turbopack
-- **Cloudflare Workers** via `@opennextjs/cloudflare`
+- **Render** Node.js web service (no adapter — standard `next start`)
 - **Supabase** (Postgres, auth JWKS, storage)
+- **Mux** (Phase 3 — RTMP ingress + HLS delivery)
+- **AWS S3** (Phase 3 — recordings storage)
 - **EV-UI** design system (Manrope font, ev-muted-blue, ev-coral)
 
 ## Local setup
@@ -18,28 +20,39 @@ live.  A permanent, searchable transcript is produced automatically.
 npm install
 
 # 2. Copy env template
-cp .dev.vars.example .dev.vars
+cp .dev.vars.example .env.local
 # Fill in real values from Supabase dashboard and service providers
 
 # 3. Start dev server (Next.js with Turbopack)
 npm run dev
 # App runs at http://localhost:3000
-
-# 4. (Optional) Preview Cloudflare Workers locally
-npm run preview
 ```
 
 ## Deploy
 
-```bash
-# Build and deploy to Cloudflare Workers
-npm run build
-npm run deploy
+Connect the GitHub repo to Render and configure a **Node.js web service**:
+
+| Setting | Value |
+|---------|-------|
+| Build command | `npm install && npm run build` |
+| Start command | `npm run start` |
+| Node version | 20+ |
+
+Set env vars in the Render dashboard (see `.env.example` for the full list).
+
+A `render.yaml` file at the repo root configures the service for Render's
+infrastructure-as-code deploy.
+
+### Custom domain
+
+In GoDaddy DNS, add a CNAME record:
+
+```
+listening.empowered.vote  →  <your-render-service>.onrender.com
 ```
 
-Requires `npx wrangler login` (one-time browser OAuth).  After first deploy,
-attach `listening.empowered.vote` via Cloudflare Dashboard:
-Workers and Pages -> empowered-listening -> Settings -> Domains and Routes -> Add Custom Domain.
+Then add `listening.empowered.vote` as a custom domain in the Render dashboard
+under **Settings → Custom Domains**.
 
 ## Environment variables
 

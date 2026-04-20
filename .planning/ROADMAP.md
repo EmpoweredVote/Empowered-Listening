@@ -27,16 +27,16 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Requirements**: INFRA-01, INFRA-02, INFRA-03, INFRA-04, UX-03
 **Success Criteria** (what must be TRUE):
   1. The `listening` Postgres schema exists in the shared Supabase instance with all tables and migrations applied cleanly
-  2. LiveKit Cloud, Cloudflare Stream, Cloudflare R2, and Deepgram accounts are provisioned and their credentials are in the environment
-  3. `listening.empowered.vote` serves a Next.js 15 page deployed to Cloudflare Workers via `@opennextjs/cloudflare` (original plan said "Next.js 14 + Pages"; 14 support was dropped by OpenNext Q1 2026 and `@cloudflare/next-on-pages` is deprecated — see 01-RESEARCH.md)
+  2. LiveKit Cloud, Mux, AWS S3, and Deepgram accounts are provisioned and their credentials are in the environment
+  3. `listening.empowered.vote` serves a Next.js 15 page deployed to Render as a Node.js web service
   4. A user redirected from `accounts.empowered.vote` arrives with a verified ES256 JWT and has their `account_standing` checked before any civic write
   5. A visitor who tries to join as a speaker or moderator from a mobile device sees an "Open this on desktop" message and cannot proceed
 **Plans**: 4 plans in 2 waves (01-01, 01-02, 01-03 parallel in Wave 1; 01-04 in Wave 2)
 
 Plans:
 - [x] 01-01-PLAN.md — Database migrations: listening schema + 9 v1 tables + RLS policies applied to kxsdzaojfaibhuzmclfq
-- [ ] 01-02-PLAN.md — Third-party service provisioning (LiveKit, Cloudflare Stream/R2, Deepgram, accounts CORS + service keys)
-- [ ] 01-03-PLAN.md — Next.js 15 scaffold on Cloudflare Workers (OpenNext) + EV-UI holding page + listening.empowered.vote domain
+- [ ] 01-02-PLAN.md — Third-party service provisioning (LiveKit, Mux, AWS S3, Deepgram, accounts CORS + service keys)
+- [ ] 01-03-PLAN.md — Next.js 15 scaffold on Render + EV-UI holding page + listening.empowered.vote domain
 - [ ] 01-04-PLAN.md — SSO auth: JWKS ES256 middleware, silent renewal, account_standing gate, desktop gate, AUTH_BYPASS dev mode
 
 ### Phase 2: Speaker Room
@@ -64,7 +64,7 @@ Plans:
 **Depends on**: Phase 2
 **Requirements**: OBS-01, OBS-02, OBS-03, OBS-04, UX-01, UX-02
 **Success Criteria** (what must be TRUE):
-  1. LiveKit Egress composites the speaker room and pushes the feed via RTMP to Cloudflare Stream; the pipeline starts automatically when a debate goes live
+  1. LiveKit Egress composites the speaker room and pushes the feed via RTMP to Mux; the pipeline starts automatically when a debate goes live
   2. An observer can open the debate URL in any modern browser and watch the HLS stream; Safari uses native HLS fallback without additional configuration
   3. A segment timeline overlay is visible showing the current debate phase and active speaker at all times
   4. A "Live (delayed)" indicator is always visible in the observer UI to surface the 5-10 second HLS lag honestly
@@ -73,7 +73,7 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 03-01: LiveKit Egress configuration, RTMP to Cloudflare Stream pipeline
+- [ ] 03-01: LiveKit Egress configuration, RTMP to Mux pipeline
 - [ ] 03-02: HLS observer page (hls.js + Safari native fallback), "Live (delayed)" indicator
 - [ ] 03-03: Segment timeline overlay component
 - [ ] 03-04: Desktop multi-panel layout with keyboard shortcuts (UX-02)

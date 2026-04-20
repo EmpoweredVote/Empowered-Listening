@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: empowered-listening
+    runtime: node
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        sync: false
+      - key: ACCOUNTS_API_BASE
+        value: https://api.empowered.vote
+      - key: JWKS_URL
+        value: https://kxsdzaojfaibhuzmclfq.supabase.co/auth/v1/.well-known/jwks.json

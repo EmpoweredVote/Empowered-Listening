@@ -1,8 +1,8 @@
 # CRITICAL: DO NOT SET SUPABASE_JWT_SECRET — this project uses ES256 JWKS verification.
 # Setting SUPABASE_JWT_SECRET would bypass asymmetric verification and create a security hole.
 #
-# Copy this file to .dev.vars for local Wrangler development.
-# .dev.vars is gitignored. This example file is committed.
+# Copy this file to .env.local for local Next.js development.
+# .env.local is gitignored.  This example file is committed.
 
 # ──────────────────────────────────────────────
 # Supabase
@@ -11,7 +11,7 @@ NEXT_PUBLIC_SUPABASE_URL=https://kxsdzaojfaibhuzmclfq.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=REDACTED
 SUPABASE_SERVICE_ROLE_KEY=REDACTED
 
-# Transaction pooler (port 6543, transaction mode) — required for serverless/Workers environments.
+# Postgres connection — session pooler (port 5432) or direct connection work fine on Render.
 DATABASE_TRANSACTION_POOLER_URL=REDACTED  # postgresql://postgres.kxsdzaojfaibhuzmclfq:[password]@aws-0-us-east-1.pooler.supabase.com:6543/postgres
 
 # ──────────────────────────────────────────────
@@ -34,13 +34,19 @@ LIVEKIT_API_KEY=REDACTED
 LIVEKIT_API_SECRET=REDACTED
 
 # ──────────────────────────────────────────────
-# Cloudflare Stream + R2 (Phase 3)
+# Mux (Phase 3 — video streaming)
 # ──────────────────────────────────────────────
-CLOUDFLARE_ACCOUNT_ID=REDACTED
-CLOUDFLARE_STREAM_CUSTOMER_SUBDOMAIN=REDACTED
-CLOUDFLARE_R2_BUCKET_NAME=empowered-listening-recordings
-CLOUDFLARE_R2_ACCESS_KEY_ID=REDACTED
-CLOUDFLARE_R2_SECRET_ACCESS_KEY=REDACTED
+MUX_TOKEN_ID=REDACTED
+MUX_TOKEN_SECRET=REDACTED
+MUX_WEBHOOK_SECRET=REDACTED
+
+# ──────────────────────────────────────────────
+# AWS S3 (recordings storage)
+# ──────────────────────────────────────────────
+AWS_ACCESS_KEY_ID=REDACTED
+AWS_SECRET_ACCESS_KEY=REDACTED
+AWS_S3_BUCKET_NAME=empowered-listening-recordings
+AWS_REGION=us-east-1
 
 # ──────────────────────────────────────────────
 # Deepgram (Phase 4)
