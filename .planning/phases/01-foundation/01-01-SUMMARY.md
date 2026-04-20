@@ -57,14 +57,14 @@ completed: 2026-04-20
 
 # Phase 1 Plan 01: Database Migrations Summary
 
-**`listening` Postgres schema with 9 v1 tables, RLS policies, and supabase CLI linked to shared EV instance kxsdzaojfaibhuzmclfq — ready for `db push`**
+**`listening` Postgres schema with 9 v1 tables and RLS policies applied to shared Supabase instance kxsdzaojfaibhuzmclfq; 116 stub migrations align local CLI history with existing EV platform**
 
 ## Performance
 
-- **Duration:** ~14 min
+- **Duration:** ~45 min
 - **Started:** 2026-04-20T20:36:59Z
-- **Completed:** 2026-04-20T20:50:55Z (paused at Task 3 checkpoint)
-- **Tasks:** 2/3 complete (Task 3 is a human-verify checkpoint)
+- **Completed:** 2026-04-20T21:30:00Z
+- **Tasks:** 3/3 complete
 - **Files modified:** 122
 
 ## Accomplishments
@@ -110,7 +110,7 @@ Each task was committed atomically:
 2. **Task 2: Write migration files — 9 tables and RLS policies** - `48a7232` (feat)
 3. **Task 2b: Stub migration files for remote EV platform history** - `92d4738` (chore)
 
-**Plan metadata:** _(pending — will commit after Task 3 checkpoint approval)_
+**Plan metadata:** _(docs commit — this summary)_
 
 ## Files Created/Modified
 
@@ -177,22 +177,18 @@ The DB password is found at: Supabase Dashboard → Settings → Database → Da
 
 ## Next Phase Readiness
 
-**Ready:**
-- Migration files are version-controlled and reviewed
-- Stub files ensure CLI history alignment
-- All 9 tables designed to support Phase 2-6 requirements
-- RLS policies follow security best practices
-
-**Pending (Task 3 checkpoint):**
-- `supabase db push --linked` must be run with DB password
-- Dashboard verification of 9 tables + RLS in the `listening` schema
-- Approval from Chris before proceeding to plans 01-02 through 01-04
+**Ready for 01-02, 01-03, 01-04 (Wave 1 parallel):**
+- All 9 tables exist in the `listening` schema and are confirmed applied to kxsdzaojfaibhuzmclfq
+- RLS policies are active — verified via Supabase Dashboard (9 tables, RLS enabled)
+- `supabase migration list --linked` is clean: `20260420000000` and `20260420000001` show in both Local and Remote columns
+- Stub files ensure local CLI history matches all 116 existing EV platform migrations
 
 **Open questions for Phase 2:**
 - Moderator UPDATE RLS pattern: SECURITY DEFINER RPC vs service-role-only writes — needs a decision before implementing segment state transitions
 - `listening_host` and `listening_moderator` role slugs must be registered with accounts maintainer before Phase 2 role-check patterns can be implemented
+- Lincoln-Douglas total time: design doc states 45 min but segment definitions sum to 32 min — 13-minute delta must be resolved before Phase 2 timer implementation
 
 ---
 
 *Phase: 01-foundation*
-*Completed: 2026-04-20 (Task 3 pending)*
+*Completed: 2026-04-20*

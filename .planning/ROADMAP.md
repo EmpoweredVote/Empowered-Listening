@@ -34,7 +34,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 4 plans in 2 waves (01-01, 01-02, 01-03 parallel in Wave 1; 01-04 in Wave 2)
 
 Plans:
-- [ ] 01-01-PLAN.md — Database migrations: listening schema + 9 v1 tables + RLS policies applied to kxsdzaojfaibhuzmclfq
+- [x] 01-01-PLAN.md — Database migrations: listening schema + 9 v1 tables + RLS policies applied to kxsdzaojfaibhuzmclfq
 - [ ] 01-02-PLAN.md — Third-party service provisioning (LiveKit, Cloudflare Stream/R2, Deepgram, accounts CORS + service keys)
 - [ ] 01-03-PLAN.md — Next.js 15 scaffold on Cloudflare Workers (OpenNext) + EV-UI holding page + listening.empowered.vote domain
 - [ ] 01-04-PLAN.md — SSO auth: JWKS ES256 middleware, silent renewal, account_standing gate, desktop gate, AUTH_BYPASS dev mode
@@ -139,7 +139,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/4 | Planned | - |
+| 1. Foundation | 1/4 | In progress | - |
 | 2. Speaker Room | 0/5 | Not started | - |
 | 3. Observer Streaming | 0/5 | Not started | - |
 | 4. Transcription | 0/4 | Not started | - |
