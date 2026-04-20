@@ -108,50 +108,48 @@ Deferred to future milestone (architecture doc Phases 6–10).
 
 ## Traceability
 
-*Populated during roadmap creation.*
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | — | Pending |
-| INFRA-02 | — | Pending |
-| INFRA-03 | — | Pending |
-| INFRA-04 | — | Pending |
-| DEBATE-01 | — | Pending |
-| DEBATE-02 | — | Pending |
-| DEBATE-03 | — | Pending |
-| DEBATE-04 | — | Pending |
-| DEBATE-05 | — | Pending |
-| DEBATE-06 | — | Pending |
-| DEBATE-07 | — | Pending |
-| DEBATE-08 | — | Pending |
-| OBS-01 | — | Pending |
-| OBS-02 | — | Pending |
-| OBS-03 | — | Pending |
-| OBS-04 | — | Pending |
-| TRANS-01 | — | Pending |
-| TRANS-02 | — | Pending |
-| TRANS-03 | — | Pending |
-| TRANS-04 | — | Pending |
-| NOTES-01 | — | Pending |
-| NOTES-02 | — | Pending |
-| NOTES-03 | — | Pending |
-| NOTES-04 | — | Pending |
-| VOTE-01 | — | Pending |
-| VOTE-02 | — | Pending |
-| VOTE-03 | — | Pending |
-| VOTE-04 | — | Pending |
-| VOTE-05 | — | Pending |
-| UX-01 | — | Pending |
-| UX-02 | — | Pending |
-| UX-03 | — | Pending |
-| UX-04 | — | Pending |
-| UX-05 | — | Pending |
+| INFRA-01 | Phase 1 | Pending |
+| INFRA-02 | Phase 1 | Pending |
+| INFRA-03 | Phase 1 | Pending |
+| INFRA-04 | Phase 1 | Pending |
+| UX-03 | Phase 1 | Pending |
+| DEBATE-01 | Phase 2 | Pending |
+| DEBATE-02 | Phase 2 | Pending |
+| DEBATE-03 | Phase 2 | Pending |
+| DEBATE-04 | Phase 2 | Pending |
+| DEBATE-05 | Phase 2 | Pending |
+| DEBATE-06 | Phase 2 | Pending |
+| DEBATE-07 | Phase 2 | Pending |
+| DEBATE-08 | Phase 2 | Pending |
+| UX-04 | Phase 2 | Pending |
+| OBS-01 | Phase 3 | Pending |
+| OBS-02 | Phase 3 | Pending |
+| OBS-03 | Phase 3 | Pending |
+| OBS-04 | Phase 3 | Pending |
+| UX-01 | Phase 3 | Pending |
+| UX-02 | Phase 3 | Pending |
+| TRANS-01 | Phase 4 | Pending |
+| TRANS-02 | Phase 4 | Pending |
+| TRANS-03 | Phase 4 | Pending |
+| TRANS-04 | Phase 4 | Pending |
+| NOTES-01 | Phase 5 | Pending |
+| NOTES-02 | Phase 5 | Pending |
+| NOTES-03 | Phase 5 | Pending |
+| NOTES-04 | Phase 5 | Pending |
+| VOTE-01 | Phase 6 | Pending |
+| VOTE-02 | Phase 6 | Pending |
+| VOTE-03 | Phase 6 | Pending |
+| VOTE-04 | Phase 6 | Pending |
+| VOTE-05 | Phase 6 | Pending |
+| UX-05 | Phase 6 | Pending |
 
 **Coverage:**
 - v1 requirements: 34 total
-- Mapped to phases: 0
-- Unmapped: 34 ⚠️ (pending roadmap creation)
+- Mapped to phases: 34
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-04-19*
-*Last updated: 2026-04-19 after initial definition*
+*Last updated: 2026-04-19 — traceability populated after roadmap creation*
