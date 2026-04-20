@@ -28,16 +28,16 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Success Criteria** (what must be TRUE):
   1. The `listening` Postgres schema exists in the shared Supabase instance with all tables and migrations applied cleanly
   2. LiveKit Cloud, Cloudflare Stream, Cloudflare R2, and Deepgram accounts are provisioned and their credentials are in the environment
-  3. `listening.empowered.vote` serves a Next.js 14 page deployed from Cloudflare Pages
+  3. `listening.empowered.vote` serves a Next.js 15 page deployed to Cloudflare Workers via `@opennextjs/cloudflare` (original plan said "Next.js 14 + Pages"; 14 support was dropped by OpenNext Q1 2026 and `@cloudflare/next-on-pages` is deprecated — see 01-RESEARCH.md)
   4. A user redirected from `accounts.empowered.vote` arrives with a verified ES256 JWT and has their `account_standing` checked before any civic write
   5. A visitor who tries to join as a speaker or moderator from a mobile device sees an "Open this on desktop" message and cannot proceed
-**Plans**: TBD
+**Plans**: 4 plans in 2 waves (01-01, 01-02, 01-03 parallel in Wave 1; 01-04 in Wave 2)
 
 Plans:
-- [ ] 01-01: Database migrations (listening schema, all tables, RLS policies)
-- [ ] 01-02: Third-party service provisioning (LiveKit, Cloudflare Stream/R2, Deepgram credentials)
-- [ ] 01-03: Next.js 14 scaffold, Cloudflare Pages deploy, domain configuration
-- [ ] 01-04: SSO auth integration (JWKS verification, account_standing check, desktop-only gate)
+- [ ] 01-01-PLAN.md — Database migrations: listening schema + 9 v1 tables + RLS policies applied to kxsdzaojfaibhuzmclfq
+- [ ] 01-02-PLAN.md — Third-party service provisioning (LiveKit, Cloudflare Stream/R2, Deepgram, accounts CORS + service keys)
+- [ ] 01-03-PLAN.md — Next.js 15 scaffold on Cloudflare Workers (OpenNext) + EV-UI holding page + listening.empowered.vote domain
+- [ ] 01-04-PLAN.md — SSO auth: JWKS ES256 middleware, silent renewal, account_standing gate, desktop gate, AUTH_BYPASS dev mode
 
 ### Phase 2: Speaker Room
 **Goal**: Two speakers and a moderator can run a full Lincoln-Douglas debate from start to finish with server-enforced timing and mic control
@@ -139,7 +139,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/4 | Not started | - |
+| 1. Foundation | 0/4 | Planned | - |
 | 2. Speaker Room | 0/5 | Not started | - |
 | 3. Observer Streaming | 0/5 | Not started | - |
 | 4. Transcription | 0/4 | Not started | - |

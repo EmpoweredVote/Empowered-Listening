@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Environment variables (secrets — never commit)
+.env
+.env.local
+.env.*.local
+.dev.vars
+
+# Supabase temp files
+supabase/.temp/
+
+# Build output
+.next/
+.open-next/
+out/
+dist/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Version-controlled (explicitly allowed):
+# - supabase/config.toml
+# - supabase/migrations/*.sql
