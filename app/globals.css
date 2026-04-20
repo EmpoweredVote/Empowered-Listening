@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+/*
+ * EV-UI Design Tokens for Tailwind v4
+ *
+ * Source: @empoweredvote/ev-ui/src/tokens.js
+ * The ev-ui tailwind-preset exports a Tailwind v3 config object.
+ * For Tailwind v4 (CSS-first), tokens are defined here via @theme.
+ * Values sourced directly from @empoweredvote/ev-ui@0.4.4.
+ */
+
+@theme {
+  /* Manrope font — loaded via next/font/google in layout.tsx */
+  --font-family-manrope: var(--font-manrope), system-ui, sans-serif;
+
+  /* EV brand colors (canonical values from ev-ui/src/tokens.js) */
+  --color-ev-coral:      #FF5740;
+  --color-ev-muted-blue: #00657C;
+  --color-ev-light-blue: #59B0C4;
+  --color-ev-yellow:     #FED12E;
+
+  /* EV coral scale */
+  --color-ev-coral-050: #FAF6F5;
+  --color-ev-coral-100: #F6E6E4;
+  --color-ev-coral-200: #F2C6C0;
+  --color-ev-coral-300: #F2988C;
+  --color-ev-coral-400: #F66855;
+  --color-ev-coral-500: #FF5740;
+  --color-ev-coral-600: #FF2B0F;
+  --color-ev-coral-700: #E61B00;
+  --color-ev-coral-800: #B31D09;
+  --color-ev-coral-900: #8E1F10;
+  --color-ev-coral-950: #6C1E13;
+
+  /* EV teal (muted-blue) scale */
+  --color-ev-teal-050: #F5F9FA;
+  --color-ev-teal-100: #E4F3F6;
+  --color-ev-teal-200: #C0E8F2;
+  --color-ev-teal-300: #7DD4E8;
+  --color-ev-teal-400: #3AABB8;
+  --color-ev-teal-500: #00657C;
+  --color-ev-teal-600: #005366;
+  --color-ev-teal-700: #003E4D;
+  --color-ev-teal-800: #03303A;
+  --color-ev-teal-900: #05262E;
+  --color-ev-teal-950: #051A1E;
+
+  /* EV skyblue (light-blue) scale */
+  --color-ev-skyblue-050: #F6F8F8;
+  --color-ev-skyblue-100: #E9F0F1;
+  --color-ev-skyblue-200: #CDE0E5;
+  --color-ev-skyblue-300: #A7CFD8;
+  --color-ev-skyblue-400: #7FBECC;
+  --color-ev-skyblue-500: #59B0C4;
+  --color-ev-skyblue-600: #3A9BB0;
+  --color-ev-skyblue-700: #327E8F;
+  --color-ev-skyblue-800: #2B616E;
+  --color-ev-skyblue-900: #264C55;
+  --color-ev-skyblue-950: #1E383D;
+
+  /* EV yellow scale */
+  --color-ev-yellow-050: #FAF9F5;
+  --color-ev-yellow-100: #F6F2E4;
+  --color-ev-yellow-200: #F1E7C0;
+  --color-ev-yellow-300: #F2DC8D;
+  --color-ev-yellow-400: #F5D356;
+  --color-ev-yellow-500: #FED12E;
+  --color-ev-yellow-600: #FAC400;
+  --color-ev-yellow-700: #D0A301;
+  --color-ev-yellow-800: #9F7F09;
+  --color-ev-yellow-900: #7B640E;
+  --color-ev-yellow-950: #5B4B10;
+}
