@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-04-19)
 ## Current Position
 
 Phase: 2 of 6 (Speaker Room)
-Plan: 02-01 and 02-02 complete (Wave 1, 2 of 7 in current phase)
+Plan: 02-03 complete (Wave 2, 3 of 7 in current phase)
 Status: In progress
-Last activity: 2026-04-21 — Completed 02-01-PLAN.md and 02-02-PLAN.md (Wave 1 complete)
+Last activity: 2026-04-21 — Completed 02-03-PLAN.md (debate creation flow)
 
-Progress: [█████░░░░░░░░░░░░░░] 26% (5/19 plans complete)
+Progress: [██████░░░░░░░░░░░░░] 32% (6/19 plans complete)
 
 ## Performance Metrics
 
@@ -64,6 +64,10 @@ Recent decisions affecting current work:
   - [02-01]: paused_remaining_seconds stores main-timer snapshot; end_prep_time restores faithfully (not full reset)
   - [02-01]: start_segment enforces sequence order — target must be 1 (no completed) or max(completed)+1 per DEBATE-04
   - [02-01]: Remote migration timestamp ordering requires --include-all flag when Phase 2 migrations predate new remote stubs
+  - [02-03]: JWT role claim extracted from app_metadata.roles first, top-level roles as fallback — Supabase standard is app_metadata.roles
+  - [02-03]: Client-side role gate in CreateDebateForm (UX only); API always server-side protected; /moderator/* middleware deferred to follow-up
+  - [02-03]: title and topic set to same value in createDebate (v1 known simplification)
+  - [02-03]: NEXT_PUBLIC_APP_ORIGIN added to lib/env.ts as optional URL for share-page link generation
 
 ### Pending Todos
 
@@ -75,9 +79,10 @@ None yet.
 - [01-01]: 116 stub migration files were created to align local Supabase history with existing remote EV platform migrations — these stubs will appear in future migration lists.  This is expected; the listening migrations are 20260420000000 and 20260420000001.
 - [RESOLVED - 02-02]: Moderator role question resolved — mintToken uses role='moderator' for roomAdmin grant; listening_host/listening_moderator slugs are the role identifiers.
 - [RESOLVED - 02-02]: LD segment schedule definitive — 7 segments, 1920 total speaking seconds (32 min), LD_SEGMENTS in lib/debate/segments.ts is canonical.
+- [02-03 follow-up]: /moderator/* Next.js middleware not yet added — client-side gate only in v1; add before production launch.
 
 ## Session Continuity
 
 Last session: 2026-04-21
-Stopped at: Completed 02-02-PLAN.md — runtime deps + server-side primitives complete
+Stopped at: Completed 02-03-PLAN.md — moderator debate creation flow complete
 Resume file: None
