@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-04-19)
 ## Current Position
 
 Phase: 1 of 6 (Foundation)
-Plan: 2 of 4 in current phase
+Plan: 3 of 4 in current phase
 Status: In progress
-Last activity: 2026-04-20 — Completed 01-02-PLAN.md (service provisioning)
+Last activity: 2026-04-21 — Completed 01-03-PLAN.md (Next.js scaffold and Render deploy)
 
-Progress: [██░░░░░░░░░░░░░░░░░] 10% (2/19 plans complete)
+Progress: [███░░░░░░░░░░░░░░░░] 16% (3/19 plans complete)
 
 ## Performance Metrics
 
@@ -52,6 +52,7 @@ Recent decisions affecting current work:
 - [01-01]: Moderator UPDATE RLS policies deferred to Phase 2 SECURITY DEFINER RPCs; service role handles all writes in Phase 1
 - [Arch]: Switched from Cloudflare Workers/Stream/R2 to Render/Mux/S3 — empowered.vote DNS is on AWS/GoDaddy, incompatible with Cloudflare Workers custom domains
 - [01-02]: Switched from Cloudflare Stream/R2/Workers to Mux/S3/Render — empowered.vote DNS on AWS/GoDaddy is incompatible with Cloudflare Workers custom domains
+  - [01-03]: EV-UI fallback tokens used directly in tailwind.config.ts — @empoweredvote/ev-ui preset not imported
 
 ### Pending Todos
 
@@ -67,6 +68,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-20
-Stopped at: Completed 01-02-PLAN.md — all third-party service credentials provisioned
+Last session: 2026-04-21
+Stopped at: Completed 01-03-PLAN.md — Next.js scaffold deployed to Render at listening.empowered.vote
 Resume file: None
