@@ -59,7 +59,6 @@ export function SpeakerJoinClient({ debateId, speakerId, speakers }: Props) {
       token={state.token}
       serverUrl={state.serverUrl}
       speakers={speakers}
-      showWaitingRoom={false}
     />
   );
 }

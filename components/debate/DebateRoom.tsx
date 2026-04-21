@@ -4,42 +4,47 @@ import { LiveKitRoom, RoomAudioRenderer } from '@livekit/components-react';
 import '@livekit/components-styles';
 import { ParticipantGrid, type DebateSpeakerInfo } from './ParticipantGrid';
 import { WaitingRoom } from './WaitingRoom';
+import { ModeratorPanel } from './ModeratorPanel';
+import { SpeakerView } from './SpeakerView';
 import { useDebateSync } from '@/hooks/useDebateSync';
 import { useMicAutoPublish } from '@/hooks/useMicAutoPublish';
+import { useDebateStore } from '@/store/debateStore';
 
 interface DebateRoomProps {
   debateId: string;
   token: string;
   serverUrl: string;
   speakers: DebateSpeakerInfo[];
-  showWaitingRoom?: boolean;
+  /** true => this tab is the moderator's; render ModeratorPanel instead of SpeakerView */
+  isModerator?: boolean;
 }
 
-function InnerRoom({ speakers, showWaitingRoom }: { speakers: DebateSpeakerInfo[]; showWaitingRoom: boolean }) {
+function InnerRoom({ debateId, speakers, isModerator }: {
+  debateId: string; speakers: DebateSpeakerInfo[]; isModerator: boolean;
+}) {
   useMicAutoPublish();
+  const waitingComplete = useDebateStore(s => (s.debate?.status ?? 'scheduled') === 'live');
+
   return (
-    <div className="mx-auto max-w-6xl space-y-4 p-4">
-      {showWaitingRoom && <WaitingRoom speakers={speakers} />}
-      <ParticipantGrid speakers={speakers} />
+    <div className="relative mx-auto max-w-6xl space-y-4 p-4">
+      {isModerator && !waitingComplete && <WaitingRoom speakers={speakers} />}
+      <div className="relative">
+        <ParticipantGrid speakers={speakers} />
+        {/* SpeakerView has its own moderator-guard, so it's safe to render
+            for all participants — it will only show the overlay for active aff/neg speakers. */}
+        <SpeakerView />
+      </div>
+      {isModerator && <ModeratorPanel debateId={debateId} />}
     </div>
   );
 }
 
-export function DebateRoom({ debateId, token, serverUrl, speakers, showWaitingRoom = false }: DebateRoomProps) {
+export function DebateRoom({ debateId, token, serverUrl, speakers, isModerator = false }: DebateRoomProps) {
   useDebateSync(debateId);
-
   return (
-    <LiveKitRoom
-      token={token}
-      serverUrl={serverUrl}
-      connect={true}
-      video={true}
-      audio={true}
-      data-lk-theme="default"
-      className="min-h-screen bg-slate-950"
-    >
+    <LiveKitRoom token={token} serverUrl={serverUrl} connect video audio data-lk-theme="default" className="min-h-screen bg-slate-950">
       <RoomAudioRenderer />
-      <InnerRoom speakers={speakers} showWaitingRoom={showWaitingRoom} />
+      <InnerRoom debateId={debateId} speakers={speakers} isModerator={isModerator} />
     </LiveKitRoom>
   );
 }

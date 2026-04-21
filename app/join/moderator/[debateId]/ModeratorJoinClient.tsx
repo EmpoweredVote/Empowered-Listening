@@ -59,7 +59,7 @@ export function ModeratorJoinClient({ debateId, speakerId, speakers }: Props) {
       token={state.token}
       serverUrl={state.serverUrl}
       speakers={speakers}
-      showWaitingRoom={true}
+      isModerator={true}
     />
   );
 }
