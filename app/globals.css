@@ -71,3 +71,6 @@
   --color-ev-yellow-900: #7B640E;
   --color-ev-yellow-950: #5B4B10;
 }
+
+@keyframes lk-timer-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+.lk-timer-blink { animation: lk-timer-blink 1s step-start infinite; }
