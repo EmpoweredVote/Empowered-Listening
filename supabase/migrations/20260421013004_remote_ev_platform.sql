@@ -1,0 +1,2 @@
+-- Stub: remote EV platform migration applied to shared Supabase instance.
+-- Empty file required to align local Supabase CLI migration history.
