@@ -3,7 +3,7 @@ import { env } from '@/lib/env';
 
 let _pool: Pool | null = null;
 
-function getPool(): Pool {
+export function getPool(): Pool {
   if (!_pool) {
     if (!env.DATABASE_TRANSACTION_POOLER_URL) {
       throw new Error('DATABASE_TRANSACTION_POOLER_URL is not set');
