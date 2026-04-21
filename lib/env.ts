@@ -25,6 +25,8 @@ const schema = z.object({
   LIVEKIT_URL: z.string().url().optional(),
   LIVEKIT_API_KEY: z.string().optional(),
   LIVEKIT_API_SECRET: z.string().optional(),
+  // App origin (Phase 2 — share links)
+  NEXT_PUBLIC_APP_ORIGIN: z.string().url().optional(),
 });
 
 export const env = schema.parse(process.env);
