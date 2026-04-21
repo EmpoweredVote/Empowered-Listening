@@ -27,13 +27,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid input', issues: parsed.error.flatten().fieldErrors }, { status: 400 });
   }
 
-  const result = await createDebate({
-    topic: parsed.data.topic,
-    moderatorUserId,
-    moderatorDisplayName: parsed.data.moderatorDisplayName,
-    affirmativeName: parsed.data.affirmativeName,
-    negativeName: parsed.data.negativeName,
-  });
-
-  return NextResponse.json(result, { status: 201 });
+  try {
+    const result = await createDebate({
+      topic: parsed.data.topic,
+      moderatorUserId,
+      moderatorDisplayName: parsed.data.moderatorDisplayName,
+      affirmativeName: parsed.data.affirmativeName,
+      negativeName: parsed.data.negativeName,
+    });
+    return NextResponse.json(result, { status: 201 });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error('[POST /api/debates]', msg);
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
 }
