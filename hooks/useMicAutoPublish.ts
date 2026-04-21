@@ -2,33 +2,42 @@
 
 import { useEffect } from 'react';
 import { useLocalParticipant } from '@livekit/components-react';
+import { useDebateStore } from '@/store/debateStore';
+import { LD_SEGMENTS } from '@/lib/debate/segments';
 
 /**
- * When the server grants canPublish: true via updateParticipant, LiveKit does not
- * automatically start publishing — the client must call setMicrophoneEnabled(true).
- * This hook listens for ParticipantPermissionsChanged on the local participant and
- * toggles the mic track accordingly.
+ * Enables/disables the local mic based on debate state in the Zustand store.
+ * Reacts to segment changes via Realtime — no LiveKit permission event needed.
  *
- * Must be mounted INSIDE <LiveKitRoom> so useLocalParticipant() has context.
+ * Moderators: never get a mic (their token has canPublish: false at mint time).
+ * Speakers: mic on only when they are the active speaker for the current segment.
+ * Between segments (no active segment): mic off.
  */
 export function useMicAutoPublish(): void {
   const { localParticipant } = useLocalParticipant();
+  const active = useDebateStore(s => s.getActiveSegment());
+  const speakers = useDebateStore(s => s.speakers);
 
   useEffect(() => {
     if (!localParticipant) return;
 
-    const handler = () => {
-      const canPublish = !!localParticipant.permissions?.canPublish;
-      if (canPublish && !localParticipant.isMicrophoneEnabled) {
-        void localParticipant.setMicrophoneEnabled(true);
-      }
-      // Revocation is handled automatically by LiveKit — it unpublishes and prevents republish.
-      // We do not need to call setMicrophoneEnabled(false) explicitly.
-    };
+    const localSpeaker = Object.values(speakers).find(
+      s => s.livekit_identity === localParticipant.identity,
+    );
+    if (!localSpeaker || localSpeaker.role === 'moderator') return;
 
-    localParticipant.on('participantPermissionsChanged', handler);
-    // Also run once in case permissions are already set at mount.
-    handler();
-    return () => { localParticipant.off('participantPermissionsChanged', handler); };
-  }, [localParticipant]);
+    const meta = active ? LD_SEGMENTS.find(s => s.segmentType === active.segment_type) : null;
+    const shouldHaveMic =
+      active?.status === 'active' &&
+      !!meta &&
+      (meta.activeSpeakerRole === 'both' ||
+        (meta.activeSpeakerRole === 'affirmative' && localSpeaker.role === 'affirmative') ||
+        (meta.activeSpeakerRole === 'negative' && localSpeaker.role === 'negative'));
+
+    if (shouldHaveMic && !localParticipant.isMicrophoneEnabled) {
+      void localParticipant.setMicrophoneEnabled(true);
+    } else if (!shouldHaveMic && localParticipant.isMicrophoneEnabled) {
+      void localParticipant.setMicrophoneEnabled(false);
+    }
+  }, [localParticipant, active, speakers]);
 }
