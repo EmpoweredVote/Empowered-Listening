@@ -55,6 +55,7 @@ export function ModeratorJoinClient({ debateId, speakerId, speakers }: Props) {
 
   return (
     <DebateRoom
+      debateId={debateId}
       token={state.token}
       serverUrl={state.serverUrl}
       speakers={speakers}
