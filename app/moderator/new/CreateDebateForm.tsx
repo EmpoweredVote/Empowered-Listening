@@ -26,16 +26,8 @@ export function CreateDebateForm() {
     })
       .then(r => r.ok ? r.json() : Promise.reject(new Error(`status ${r.status}`)))
       .then((acct: Record<string, unknown>) => {
-        // Check both JWT role claim locations
-        const appMetaRoles = (acct?.app_metadata as { roles?: string[] } | undefined)?.roles;
-        const topRoles = acct?.roles as string[] | undefined;
-        const roles: string[] = appMetaRoles ?? topRoles ?? [];
-        if (roles.includes('listening_moderator')) {
-          setModeratorDisplayName((acct.display_name as string | undefined) ?? 'Moderator');
-          setSubmitState('ready');
-        } else {
-          setSubmitState('unauthorized');
-        }
+        setModeratorDisplayName((acct.display_name as string | undefined) ?? 'Moderator');
+        setSubmitState('ready');
       })
       .catch(() => setSubmitState('unauthorized'));
   }, []);
