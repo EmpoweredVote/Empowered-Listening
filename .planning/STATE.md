@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-04-19)
 
 ## Current Position
 
-Phase: 1 of 6 (Foundation)
-Plan: 4 of 4 in current phase
-Status: Phase complete
-Last activity: 2026-04-21 — Completed 01-04-PLAN.md (Phase 1 complete)
+Phase: 2 of 6 (Speaker Room)
+Plan: 02-02 complete (2 of 7 in current phase)
+Status: In progress
+Last activity: 2026-04-21 — Completed 02-02-PLAN.md (runtime deps + primitives)
 
-Progress: [████░░░░░░░░░░░░░░░] 21% (4/19 plans complete)
+Progress: [█████░░░░░░░░░░░░░░] 26% (5/19 plans complete)
 
 ## Performance Metrics
 
@@ -58,6 +58,9 @@ Recent decisions affecting current work:
   - [01-04]: assertBypassSafe() called at layout module level — runs at startup, not per-request
   - [01-04]: SessionProvider uses localStorage (ev_token) + cookie-based silent renewal via api.empowered.vote
   - [01-04]: account_standing checked in server components via x-user-id header — not in middleware (avoids per-request outbound API call on every route)
+  - [02-02]: LIVEKIT_* env vars are optional() in Zod schema — prevents startup failures in dev environments without LiveKit configured
+  - [02-02]: mintToken must await toJwt() — livekit-server-sdk v2 made toJwt() async; unwrapped Promise is rejected as malformed by LiveKit
+  - [02-02]: setMicPermission uses updateParticipant (not mutePublishedTrack) — canPublish revocation auto-unpublishes all tracks, no track SID needed
 
 ### Pending Todos
 
@@ -65,14 +68,13 @@ None yet.
 
 ### Blockers/Concerns
 
-- [Pre-Phase 1]: Open question — is "moderator" a distinct role from Empowered, or an attribute on an Empowered account?  Resolve before Phase 2 JWT token minting.
-- [Pre-Phase 2]: Lincoln-Douglas total time is 32 minutes of segments vs 45 stated in design doc; 13-minute delta needs a definitive segment schedule before Phase 2 timer implementation.
 - [Pre-Phase 4]: Deepgram vs AssemblyAI transcription provider decision deferred; A/B test on real debate audio recommended before Phase 4 commit.
 - [01-01]: 116 stub migration files were created to align local Supabase history with existing remote EV platform migrations — these stubs will appear in future migration lists.  This is expected; the listening migrations are 20260420000000 and 20260420000001.
-- [Pre-Phase 2]: listening_host and listening_moderator role slugs registered (01-02 complete) — role-check patterns can proceed in Phase 2.
+- [RESOLVED - 02-02]: Moderator role question resolved — mintToken uses role='moderator' for roomAdmin grant; listening_host/listening_moderator slugs are the role identifiers.
+- [RESOLVED - 02-02]: LD segment schedule definitive — 7 segments, 1920 total speaking seconds (32 min), LD_SEGMENTS in lib/debate/segments.ts is canonical.
 
 ## Session Continuity
 
 Last session: 2026-04-21
-Stopped at: Completed 01-04-PLAN.md — Phase 1 foundation complete
+Stopped at: Completed 02-02-PLAN.md — runtime deps + server-side primitives complete
 Resume file: None
