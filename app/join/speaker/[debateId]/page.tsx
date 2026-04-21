@@ -1,26 +1,50 @@
 import { headers } from 'next/headers';
+import { notFound } from 'next/navigation';
 import { DesktopGate } from '@/components/desktop-gate/DesktopGate';
+import { getPool } from '@/lib/db/pool';
+import { SpeakerJoinClient } from './SpeakerJoinClient';
 
-export default async function SpeakerJoinPage({
-  params,
-}: {
+export default async function SpeakerJoinPage(props: {
   params: Promise<{ debateId: string }>;
+  searchParams: Promise<{ s?: string }>;
 }) {
-  const { debateId } = await params;
-  const headerList = await headers();
-  const isMobileGate = headerList.get('x-mobile-gate') === '1';
-  const joinUrl = `https://listening.empowered.vote/join/speaker/${debateId}`;
+  const { debateId } = await props.params;
+  const { s: speakerId } = await props.searchParams;
+  const h = await headers();
+  const joinUrl = `https://listening.empowered.vote/join/speaker/${debateId}${speakerId ? `?s=${speakerId}` : ''}`;
 
-  if (isMobileGate) {
+  if (h.get('x-mobile-gate') === '1') {
     return <DesktopGate joinUrl={joinUrl} />;
   }
+  if (!speakerId) notFound();
+
+  const pool = getPool();
+  const { rows } = await pool.query<{
+    id: string;
+    role: 'affirmative' | 'negative' | 'moderator';
+    display_name: string;
+    livekit_identity: string;
+  }>(
+    `SELECT id, role, display_name, livekit_identity
+     FROM listening.debate_speakers
+     WHERE debate_id = $1
+     ORDER BY role`,
+    [debateId],
+  );
+  if (rows.length !== 3) notFound();
+
+  const speakers = rows.map(r => ({
+    id: r.id,
+    role: r.role,
+    displayName: r.display_name,
+    livekitIdentity: r.livekit_identity,
+  }));
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center px-6 py-12 gap-6 text-center">
-      <h1 className="text-2xl font-semibold text-ev-muted-blue">Speaker join: {debateId}</h1>
-      <p className="text-base text-slate-700">
-        Speaker room implementation begins in Phase 2.  You are authenticated.
-      </p>
-    </main>
+    <SpeakerJoinClient
+      debateId={debateId}
+      speakerId={speakerId}
+      speakers={speakers}
+    />
   );
 }
