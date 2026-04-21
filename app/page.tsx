@@ -1,9 +1,18 @@
-import Link from 'next/link';
+'use client';
+
+import { useSession } from '@/components/auth/SessionProvider';
+import { LoginButton } from '@/components/auth/LoginButton';
 
 export default function HomePage() {
-  const loginUrl =
-    'https://accounts.empowered.vote/login?redirect=' +
-    encodeURIComponent('https://listening.empowered.vote');
+  const { displayName, loading } = useSession();
+
+  if (loading) {
+    return (
+      <main className="min-h-screen flex items-center justify-center">
+        <p className="text-slate-500">Loading...</p>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center px-6 py-12 gap-8">
@@ -13,12 +22,13 @@ export default function HomePage() {
           Structured civic debate.  Fair speakers, accountable timing, a searchable record.
         </p>
       </header>
-      <Link
-        href={loginUrl}
-        className="inline-flex items-center justify-center rounded-md bg-ev-muted-blue px-6 py-3 text-white font-medium hover:opacity-90 transition"
-      >
-        Log in via Empowered
-      </Link>
+      {displayName ? (
+        <p className="text-base text-slate-700">
+          Signed in as <strong>{displayName}</strong>
+        </p>
+      ) : (
+        <LoginButton />
+      )}
     </main>
   );
 }
