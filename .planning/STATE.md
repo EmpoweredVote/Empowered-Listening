@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-04-19)
 ## Current Position
 
 Phase: 1 of 6 (Foundation)
-Plan: 1 of 4 in current phase
+Plan: 2 of 4 in current phase
 Status: In progress
-Last activity: 2026-04-20 — Completed 01-01-PLAN.md (database migrations)
+Last activity: 2026-04-20 — Completed 01-02-PLAN.md (service provisioning)
 
-Progress: [▓░░░░░░░░░░░░░░░░░░] 5% (1/19 plans complete)
+Progress: [██░░░░░░░░░░░░░░░░░] 10% (2/19 plans complete)
 
 ## Performance Metrics
 
@@ -51,6 +51,7 @@ Recent decisions affecting current work:
 - [01-01]: Stub migration files (empty SQL) required for shared-instance CLI history alignment — 116 stubs created for existing EV platform migrations
 - [01-01]: Moderator UPDATE RLS policies deferred to Phase 2 SECURITY DEFINER RPCs; service role handles all writes in Phase 1
 - [Arch]: Switched from Cloudflare Workers/Stream/R2 to Render/Mux/S3 — empowered.vote DNS is on AWS/GoDaddy, incompatible with Cloudflare Workers custom domains
+- [01-02]: Switched from Cloudflare Stream/R2/Workers to Mux/S3/Render — empowered.vote DNS on AWS/GoDaddy is incompatible with Cloudflare Workers custom domains
 
 ### Pending Todos
 
@@ -62,10 +63,10 @@ None yet.
 - [Pre-Phase 2]: Lincoln-Douglas total time is 32 minutes of segments vs 45 stated in design doc; 13-minute delta needs a definitive segment schedule before Phase 2 timer implementation.
 - [Pre-Phase 4]: Deepgram vs AssemblyAI transcription provider decision deferred; A/B test on real debate audio recommended before Phase 4 commit.
 - [01-01]: 116 stub migration files were created to align local Supabase history with existing remote EV platform migrations — these stubs will appear in future migration lists.  This is expected; the listening migrations are 20260420000000 and 20260420000001.
-- [Pre-Phase 2]: listening_host and listening_moderator role slugs must be registered with accounts maintainer before role-check patterns can be implemented.
+- [Pre-Phase 2]: listening_host and listening_moderator role slugs registered (01-02 complete) — role-check patterns can proceed in Phase 2.
 
 ## Session Continuity
 
-Last session: 2026-04-20T21:30:00Z
-Stopped at: Completed 01-01-PLAN.md — database migrations applied and verified
+Last session: 2026-04-20
+Stopped at: Completed 01-02-PLAN.md — all third-party service credentials provisioned
 Resume file: None
