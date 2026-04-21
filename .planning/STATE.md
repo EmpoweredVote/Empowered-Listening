@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-04-19)
 ## Current Position
 
 Phase: 1 of 6 (Foundation)
-Plan: 3 of 4 in current phase
-Status: In progress
-Last activity: 2026-04-21 — Completed 01-03-PLAN.md (Next.js scaffold and Render deploy)
+Plan: 4 of 4 in current phase
+Status: In progress (checkpoint — awaiting human verification)
+Last activity: 2026-04-21 — Tasks 1-2 of 01-04-PLAN.md complete; Task 3 checkpoint pending SSO verification
 
-Progress: [███░░░░░░░░░░░░░░░░] 16% (3/19 plans complete)
+Progress: [████░░░░░░░░░░░░░░░] 21% (4/19 plans in progress)
 
 ## Performance Metrics
 
@@ -53,6 +53,10 @@ Recent decisions affecting current work:
 - [Arch]: Switched from Cloudflare Workers/Stream/R2 to Render/Mux/S3 — empowered.vote DNS is on AWS/GoDaddy, incompatible with Cloudflare Workers custom domains
 - [01-02]: Switched from Cloudflare Stream/R2/Workers to Mux/S3/Render — empowered.vote DNS on AWS/GoDaddy is incompatible with Cloudflare Workers custom domains
   - [01-03]: EV-UI fallback tokens used directly in tailwind.config.ts — @empoweredvote/ev-ui preset not imported
+  - [01-04]: jose createRemoteJWKSet with algorithms: ['ES256'] enforced — prevents algorithm confusion attacks
+  - [01-04]: Desktop gate passes x-mobile-gate: 1 header (not redirect) — inline gate on same page per decision
+  - [01-04]: assertBypassSafe() called at layout module level — runs at startup, not per-request
+  - [01-04]: SessionProvider uses localStorage (ev_token) + cookie-based silent renewal via api.empowered.vote
 
 ### Pending Todos
 
@@ -69,5 +73,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-04-21
-Stopped at: Completed 01-03-PLAN.md — Next.js scaffold deployed to Render at listening.empowered.vote
-Resume file: None
+Stopped at: 01-04 Task 3 checkpoint — awaiting human SSO verification (tasks 1-2 committed at aac535e, 3e32282)
+Resume file: None (resume signal: "01-04 approved")
