@@ -1,4 +1,4 @@
-import { RoomServiceClient } from 'livekit-server-sdk';
+import { RoomServiceClient, TrackSource } from 'livekit-server-sdk';
 import { env } from '@/lib/env';
 
 let _roomService: RoomServiceClient | null = null;
@@ -20,9 +20,13 @@ export async function setMicPermission(
 ): Promise<void> {
   await getRoomService().updateParticipant(roomName, identity, {
     permission: {
-      canPublish,
+      canPublish: true,
       canSubscribe: true,
       canPublishData: true,
+      // Restrict to audio-only when muting; allow camera+mic when active.
+      canPublishSources: canPublish
+        ? [TrackSource.MICROPHONE, TrackSource.CAMERA, TrackSource.SCREEN_SHARE]
+        : [TrackSource.CAMERA, TrackSource.SCREEN_SHARE],
     },
   });
 }
