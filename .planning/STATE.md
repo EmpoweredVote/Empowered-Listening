@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-04-19)
 ## Current Position
 
 Phase: 2 of 6 (Speaker Room)
-Plan: 02-03 complete (Wave 2, 3 of 7 in current phase)
+Plan: 02-04 complete (Wave 2, 4 of 7 in current phase)
 Status: In progress
-Last activity: 2026-04-21 — Completed 02-03-PLAN.md (debate creation flow)
+Last activity: 2026-04-21 — Completed 02-04-PLAN.md (token endpoint + join flow + LiveKit room components)
 
-Progress: [██████░░░░░░░░░░░░░] 32% (6/19 plans complete)
+Progress: [███████░░░░░░░░░░░░] 37% (7/19 plans complete)
 
 ## Performance Metrics
 
@@ -68,6 +68,9 @@ Recent decisions affecting current work:
   - [02-03]: Client-side role gate in CreateDebateForm (UX only); API always server-side protected; /moderator/* middleware deferred to follow-up
   - [02-03]: title and topic set to same value in createDebate (v1 known simplification)
   - [02-03]: NEXT_PUBLIC_APP_ORIGIN added to lib/env.ts as optional URL for share-page link generation
+  - [02-04]: VideoTrack takes trackRef?: TrackReference; useTracks([Track.Source.Camera]) returns room-wide list, filter by participant.identity per tile
+  - [02-04]: @livekit/components-styles imported in DebateRoom.tsx directly — not in globals.css; works because DebateRoom is a client component
+  - [02-04]: Slot claim uses conditional UPDATE WHERE user_id IS NULL for atomic race-condition-safe claim
 
 ### Pending Todos
 
@@ -84,5 +87,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-04-21
-Stopped at: Completed 02-03-PLAN.md — moderator debate creation flow complete
+Stopped at: Completed 02-04-PLAN.md — token endpoint + join flow + LiveKit room components complete
 Resume file: None
