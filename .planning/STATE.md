@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-04-19)
 ## Current Position
 
 Phase: 2 of 6 (Speaker Room)
-Plan: 02-02 complete (2 of 7 in current phase)
+Plan: 02-01 and 02-02 complete (Wave 1, 2 of 7 in current phase)
 Status: In progress
-Last activity: 2026-04-21 — Completed 02-02-PLAN.md (runtime deps + primitives)
+Last activity: 2026-04-21 — Completed 02-01-PLAN.md and 02-02-PLAN.md (Wave 1 complete)
 
 Progress: [█████░░░░░░░░░░░░░░] 26% (5/19 plans complete)
 
@@ -61,6 +61,9 @@ Recent decisions affecting current work:
   - [02-02]: LIVEKIT_* env vars are optional() in Zod schema — prevents startup failures in dev environments without LiveKit configured
   - [02-02]: mintToken must await toJwt() — livekit-server-sdk v2 made toJwt() async; unwrapped Promise is rejected as malformed by LiveKit
   - [02-02]: setMicPermission uses updateParticipant (not mutePublishedTrack) — canPublish revocation auto-unpublishes all tracks, no track SID needed
+  - [02-01]: paused_remaining_seconds stores main-timer snapshot; end_prep_time restores faithfully (not full reset)
+  - [02-01]: start_segment enforces sequence order — target must be 1 (no completed) or max(completed)+1 per DEBATE-04
+  - [02-01]: Remote migration timestamp ordering requires --include-all flag when Phase 2 migrations predate new remote stubs
 
 ### Pending Todos
 
