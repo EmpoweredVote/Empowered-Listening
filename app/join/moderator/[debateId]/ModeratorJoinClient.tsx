@@ -21,7 +21,7 @@ export function ModeratorJoinClient({ debateId, speakerId, speakers }: Props) {
   useEffect(() => {
     const ev = localStorage.getItem('ev_token');
     if (!ev) {
-      setState({ status: 'error', message: 'Not signed in.  Please log in via Empowered.' });
+      window.location.href = `https://accounts.empowered.vote/login?redirect=${encodeURIComponent(window.location.href)}`;
       return;
     }
     fetch(`/api/debates/${debateId}/token`, {
