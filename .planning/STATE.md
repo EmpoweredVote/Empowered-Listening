@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-04-19)
 
 **Core value:** Two speakers and a moderator can run a fair, accountable structured debate that any connected observer can watch live, with a permanent and searchable transcript produced automatically.
-**Current focus:** Phase 1 — Foundation
+**Current focus:** Phase 2 — Speaker Room
 
 ## Current Position
 
 Phase: 1 of 6 (Foundation)
 Plan: 4 of 4 in current phase
-Status: In progress (checkpoint — awaiting human verification)
-Last activity: 2026-04-21 — Tasks 1-2 of 01-04-PLAN.md complete; Task 3 checkpoint pending SSO verification
+Status: Phase complete
+Last activity: 2026-04-21 — Completed 01-04-PLAN.md (Phase 1 complete)
 
-Progress: [████░░░░░░░░░░░░░░░] 21% (4/19 plans in progress)
+Progress: [████░░░░░░░░░░░░░░░] 21% (4/19 plans complete)
 
 ## Performance Metrics
 
@@ -57,6 +57,7 @@ Recent decisions affecting current work:
   - [01-04]: Desktop gate passes x-mobile-gate: 1 header (not redirect) — inline gate on same page per decision
   - [01-04]: assertBypassSafe() called at layout module level — runs at startup, not per-request
   - [01-04]: SessionProvider uses localStorage (ev_token) + cookie-based silent renewal via api.empowered.vote
+  - [01-04]: account_standing checked in server components via x-user-id header — not in middleware (avoids per-request outbound API call on every route)
 
 ### Pending Todos
 
@@ -73,5 +74,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-04-21
-Stopped at: 01-04 Task 3 checkpoint — awaiting human SSO verification (tasks 1-2 committed at aac535e, 3e32282)
-Resume file: None (resume signal: "01-04 approved")
+Stopped at: Completed 01-04-PLAN.md — Phase 1 foundation complete
+Resume file: None

@@ -74,10 +74,10 @@ completed: 2026-04-21
 
 ## Performance
 
-- **Duration:** ~6 min (automated tasks only; checkpoint pending human verification)
+- **Duration:** ~45 min
 - **Started:** 2026-04-21T03:23:23Z
-- **Completed:** 2026-04-21T03:28:40Z (paused at checkpoint)
-- **Tasks:** 2/3 automated tasks complete; Task 3 is human-verify checkpoint
+- **Completed:** 2026-04-21 (verified on live deployment)
+- **Tasks:** 3/3 complete (Tasks 1-2 automated; Task 3 human-verify checkpoint — APPROVED)
 - **Files modified:** 15
 
 ## Accomplishments
@@ -93,7 +93,7 @@ Each task was committed atomically:
 
 1. **Task 1: JWT verification, silent renewal, account_standing, and dev bypass primitives** - `aac535e` (feat)
 2. **Task 2: Authenticated holding page, desktop gate, join pages, and restricted page** - `3e32282` (feat)
-3. **Task 3: End-to-end SSO login verification** — CHECKPOINT (human-verify)
+3. **Task 3: End-to-end SSO login verification** — CHECKPOINT (human-verify, APPROVED on https://listening.empowered.vote)
 
 ## Files Created/Modified
 - `lib/auth/jwks.ts` — JWKS-backed verifyToken using jose with ES256 enforced
@@ -130,11 +130,21 @@ None.
 None — no new external service configuration required.  Existing env vars from 01-03 apply.
 
 ## Next Phase Readiness
-- Auth primitives ready for Phase 2 room/debate endpoints to consume
-- Middleware JWT verification pattern established for all /join/* routes
-- account_standing gate helper ready; Phase 2 can call isStandingActive() before civic writes
-- Pending: Task 3 human verification of live SSO round-trip against accounts.empowered.vote
+
+Phase 1 is complete — all 4 plans executed and verified.
+
+Phase 2 can build speaker/moderator UIs behind /join/* routes knowing:
+- Auth is enforced at middleware for all /join/* and /debate/* routes
+- account_standing helper (isStandingActive) is available for any server component that needs it
+- Desktop gate is in place for speaker and moderator join pages
+
+**Open question before Phase 2 JWT minting:** Is "moderator" a distinct Empowered role (present in JWT roles array) or an attribute on a debate record?  This must be resolved before Phase 2 mints LiveKit tokens with role-based permissions.
+
+**Phase 1 success criteria status:**
+- Criteria 1-3: Confirmed met in prior plans (01-01, 01-02, 01-03)
+- Criteria 4 (ES256 JWT verified + account_standing gate): CONFIRMED MET — verified live on https://listening.empowered.vote
+- Criteria 5 (mobile visitor sees "Open this on desktop" message): CONFIRMED MET — desktop gate verified live
 
 ---
 *Phase: 01-foundation*
-*Completed: 2026-04-21 (checkpoint pending)*
+*Completed: 2026-04-21*

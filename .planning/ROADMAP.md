@@ -12,7 +12,7 @@ Empowered Listening delivers structured civic debate infrastructure in six phase
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation** - Schema, service accounts, Next.js scaffold, SSO auth, and desktop gate
+- [x] **Phase 1: Foundation** - Schema, service accounts, Next.js scaffold, SSO auth, and desktop gate
 - [ ] **Phase 2: Speaker Room** - Full Lincoln-Douglas debate runs end-to-end with server-authoritative timers and mic control
 - [ ] **Phase 3: Observer Streaming** - Anonymous observers watch the live debate via HLS with segment timeline overlay
 - [ ] **Phase 4: Transcription** - Every spoken word is attributed, stored per segment, and visible in near-real-time
@@ -37,7 +37,7 @@ Plans:
 - [x] 01-01-PLAN.md — Database migrations: listening schema + 9 v1 tables + RLS policies applied to kxsdzaojfaibhuzmclfq
 - [x] 01-02-PLAN.md — Third-party service provisioning (LiveKit, Mux, AWS S3, Deepgram, accounts CORS + service keys)
 - [x] 01-03-PLAN.md — Next.js 15 scaffold on Render + EV-UI holding page + listening.empowered.vote domain
-- [ ] 01-04-PLAN.md — SSO auth: JWKS ES256 middleware, silent renewal, account_standing gate, desktop gate, AUTH_BYPASS dev mode
+- [x] 01-04-PLAN.md — SSO auth: JWKS ES256 middleware, silent renewal, account_standing gate, desktop gate, AUTH_BYPASS dev mode
 
 ### Phase 2: Speaker Room
 **Goal**: Two speakers and a moderator can run a full Lincoln-Douglas debate from start to finish with server-enforced timing and mic control
@@ -139,7 +139,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 3/4 | In progress | - |
+| 1. Foundation | 4/4 | Complete | 2026-04-21 |
 | 2. Speaker Room | 0/5 | Not started | - |
 | 3. Observer Streaming | 0/5 | Not started | - |
 | 4. Transcription | 0/4 | Not started | - |
