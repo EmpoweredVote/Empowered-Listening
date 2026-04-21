@@ -13,9 +13,15 @@ export function getSupabaseBrowserClient(): SupabaseClient {
     throw new Error('NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY must be set');
   }
 
+  const evToken = typeof window !== 'undefined' ? localStorage.getItem('ev_token') : null;
+
   _client = createClient(url, anon, {
-    realtime: { params: { eventsPerSecond: 10 } },
+    realtime: {
+      params: { eventsPerSecond: 10 },
+      ...(evToken ? { headers: { Authorization: `Bearer ${evToken}` } } : {}),
+    },
     auth: { persistSession: false, autoRefreshToken: false },
+    ...(evToken ? { global: { headers: { Authorization: `Bearer ${evToken}` } } } : {}),
   });
   return _client;
 }
