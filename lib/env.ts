@@ -21,6 +21,10 @@ const schema = z.object({
   AWS_SECRET_ACCESS_KEY: z.string().optional(),
   AWS_S3_BUCKET_NAME: z.string().optional(),
   AWS_REGION: z.string().default('us-east-1'),
+  // LiveKit (Phase 2 — speaker room)
+  LIVEKIT_URL: z.string().url().optional(),
+  LIVEKIT_API_KEY: z.string().optional(),
+  LIVEKIT_API_SECRET: z.string().optional(),
 });
 
 export const env = schema.parse(process.env);
