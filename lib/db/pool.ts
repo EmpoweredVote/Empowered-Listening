@@ -1,5 +1,9 @@
 import { Pool } from 'pg';
 import { env } from '@/lib/env';
+import dns from 'node:dns';
+
+// Render's outbound network cannot route IPv6; force IPv4 DNS resolution.
+dns.setDefaultResultOrder('ipv4first');
 
 let _pool: Pool | null = null;
 
