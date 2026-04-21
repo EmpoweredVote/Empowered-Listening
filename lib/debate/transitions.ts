@@ -1,12 +1,5 @@
 import 'server-only';
-import { getSupabaseAdmin } from '@/lib/supabase/admin';
-
-async function callRpc<T>(fn: string, args: Record<string, unknown>): Promise<T> {
-  const admin = getSupabaseAdmin();
-  const { data, error } = await admin.schema('listening').rpc(fn, args);
-  if (error) throw new Error(`listening.${fn} failed: ${error.message}`);
-  return data as T;
-}
+import { pool } from '@/lib/db/pool';
 
 export interface SegmentRow {
   id: string; debate_id: string; segment_type: string; speaker_id: string | null;
@@ -16,53 +9,69 @@ export interface SegmentRow {
   end_time: string | null; prep_time_end_time: string | null;
 }
 
-export function startSegment(args: {
+export async function startSegment(args: {
   debateId: string; segmentId: string; moderatorUserId: string; durationSeconds: number;
 }): Promise<SegmentRow> {
-  return callRpc<SegmentRow>('start_segment', {
-    p_debate_id: args.debateId, p_segment_id: args.segmentId,
-    p_moderator_user_id: args.moderatorUserId, p_duration_seconds: args.durationSeconds,
-  });
+  const { rows } = await pool.query<SegmentRow>(
+    `SELECT * FROM listening.start_segment($1, $2, $3, $4)`,
+    [args.debateId, args.segmentId, args.moderatorUserId, args.durationSeconds],
+  );
+  if (rows.length === 0) throw new Error('start_segment returned no rows');
+  return rows[0];
 }
 
-export function endSegment(args: {
+export async function endSegment(args: {
   debateId: string; segmentId: string; moderatorUserId: string;
 }): Promise<SegmentRow> {
-  return callRpc<SegmentRow>('end_segment', {
-    p_debate_id: args.debateId, p_segment_id: args.segmentId,
-    p_moderator_user_id: args.moderatorUserId,
-  });
+  const { rows } = await pool.query<SegmentRow>(
+    `SELECT * FROM listening.end_segment($1, $2, $3)`,
+    [args.debateId, args.segmentId, args.moderatorUserId],
+  );
+  if (rows.length === 0) throw new Error('end_segment returned no rows');
+  return rows[0];
 }
 
-export function repeatSegment(args: {
+export async function repeatSegment(args: {
   debateId: string; segmentId: string; moderatorUserId: string; durationSeconds: number;
 }): Promise<SegmentRow> {
-  return callRpc<SegmentRow>('repeat_segment', {
-    p_debate_id: args.debateId, p_segment_id: args.segmentId,
-    p_moderator_user_id: args.moderatorUserId, p_duration_seconds: args.durationSeconds,
-  });
+  const { rows } = await pool.query<SegmentRow>(
+    `SELECT * FROM listening.repeat_segment($1, $2, $3, $4)`,
+    [args.debateId, args.segmentId, args.moderatorUserId, args.durationSeconds],
+  );
+  if (rows.length === 0) throw new Error('repeat_segment returned no rows');
+  return rows[0];
 }
 
-export function startPrepTime(args: {
+export async function startPrepTime(args: {
   debateId: string; segmentId: string; speakerId: string; callerUserId: string; prepSeconds: number;
 }): Promise<{ segment: SegmentRow; prep_remaining: number }> {
-  return callRpc('start_prep_time', {
-    p_debate_id: args.debateId, p_segment_id: args.segmentId, p_speaker_id: args.speakerId,
-    p_caller_user_id: args.callerUserId, p_prep_seconds: args.prepSeconds,
-  });
+  // RETURNS TABLE(segment listening.debate_segments, prep_remaining integer)
+  // Expand the nested composite via (r.segment).* so pg returns flat columns.
+  const { rows } = await pool.query<SegmentRow & { prep_remaining: number }>(
+    `SELECT (r.segment).*, r.prep_remaining
+     FROM listening.start_prep_time($1, $2, $3, $4, $5) r`,
+    [args.debateId, args.segmentId, args.speakerId, args.callerUserId, args.prepSeconds],
+  );
+  if (rows.length === 0) throw new Error('start_prep_time returned no rows');
+  const { prep_remaining, ...segment } = rows[0];
+  return { segment: segment as SegmentRow, prep_remaining };
 }
 
-export function endPrepTime(args: {
+export async function endPrepTime(args: {
   debateId: string; segmentId: string; speakerId: string; callerUserId: string;
 }): Promise<SegmentRow> {
-  return callRpc<SegmentRow>('end_prep_time', {
-    p_debate_id: args.debateId, p_segment_id: args.segmentId, p_speaker_id: args.speakerId,
-    p_caller_user_id: args.callerUserId,
-  });
+  const { rows } = await pool.query<SegmentRow>(
+    `SELECT * FROM listening.end_prep_time($1, $2, $3, $4)`,
+    [args.debateId, args.segmentId, args.speakerId, args.callerUserId],
+  );
+  if (rows.length === 0) throw new Error('end_prep_time returned no rows');
+  return rows[0];
 }
 
-export function consumeBonusTime(args: { speakerId: string; seconds: number }): Promise<number> {
-  return callRpc<number>('consume_bonus_time', {
-    p_speaker_id: args.speakerId, p_seconds: args.seconds,
-  });
+export async function consumeBonusTime(args: { speakerId: string; seconds: number }): Promise<number> {
+  const { rows } = await pool.query<{ consume_bonus_time: number }>(
+    `SELECT listening.consume_bonus_time($1, $2)`,
+    [args.speakerId, args.seconds],
+  );
+  return rows[0].consume_bonus_time;
 }
