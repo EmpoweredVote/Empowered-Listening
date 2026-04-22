@@ -55,7 +55,7 @@ patterns-established:
   - "Both modules import 'server-only' as first import — prevents accidental client-side use"
 
 # Metrics
-duration: 9min (Tasks 1-3; Task 4 checkpoint pending human verification)
+duration: 9min (Tasks 1-3 complete; Task 4 deferred — Mux free plan blocks RTMP ingest)
 completed: 2026-04-22
 ---
 
@@ -65,13 +65,15 @@ completed: 2026-04-22
 
 ## Status
 
-**PARTIAL — Tasks 1-3 complete, Task 4 (human-verify checkpoint) awaiting approval**
+**COMPLETE WITH DEFERRED VERIFICATION — Tasks 1-3 complete and committed; Task 4 (live pipeline human-verify) deferred until Mux Growth plan is active.**
+
+Mux free plan does not support RTMP ingest (requires Growth tier).  A nonprofit discount request has been submitted to Mux.  All code is merged and ready; verification will run once the plan is upgraded.
 
 ## Performance
 
 - **Duration:** 9 min (Tasks 1-3)
 - **Started:** 2026-04-22T14:10:45Z
-- **Tasks (pre-checkpoint):** 3 of 4
+- **Tasks completed:** 3 of 4 (Task 4 deferred)
 - **Files modified:** 8
 
 ## Accomplishments
@@ -128,21 +130,26 @@ Each task was committed atomically:
 
 - Docker not running on host — local Supabase CLI operations unavailable. Used `supabase db push --linked` to apply migration against remote project directly.
 
-## User Setup Required
+## Deferred: Task 4 — Live Pipeline Verification
 
-**External services require manual configuration before Task 4 checkpoint:**
+**Why deferred:** Mux free plan does not support RTMP ingest.  Live stream creation requires the Growth plan (or nonprofit equivalent).
 
-1. **MUX_TOKEN_ID** — Mux Dashboard -> Settings -> Access Tokens -> Create token (Mux Video permission)
-2. **MUX_TOKEN_SECRET** — Shown once at token creation; save immediately
-3. Add both to `.env.local`
-4. Verify Mux billing has no monthly streaming cap below ~20 minutes for dev testing
+**What Task 4 would verify:**
+- Moderator starts first segment; Mux dashboard shows stream in Active state
+- `mux_playback_id` populated in `listening.debates`
+- HLS URL `https://stream.mux.com/<mux_playback_id>.m3u8` resolves in a player
+- Moderator ends debate; stream transitions to Idle/Completed in Mux dashboard
+
+**Re-verify when:** Mux nonprofit Growth plan is approved and credentials are added to `.env.local`.
+
+**Open question for 03-02:** Confirm whether `latency_mode: 'reduced'` is correct once live testing is possible.  Mux also offers `'low'` (LL-HLS) — the right choice depends on measured observer latency in a real debate session.
 
 ## Next Phase Readiness
 
-- Task 4 (human-verify) pending: moderator must start a segment and confirm Mux dashboard shows Active stream
-- Once approved: 03-02 (observer player UI) can consume `GET /api/debates/[debateId]/stream` immediately
-- mux_playback_id column populated on first segment start — HLS URL is `https://stream.mux.com/<mux_playback_id>.m3u8`
+- 03-02 (observer player UI) can be built immediately — it only needs `GET /api/debates/[debateId]/stream` which returns `{mux_playback_id, status}` and is already live
+- `mux_playback_id` will be populated on first segment start once Mux plan is active
+- HLS URL pattern: `https://stream.mux.com/<mux_playback_id>.m3u8`
 
 ---
 *Phase: 03-observer-streaming*
-*Completed: 2026-04-22 (partial — checkpoint pending)*
+*Completed: 2026-04-22 (Tasks 1-3; Task 4 deferred — Mux free plan blocks RTMP ingest)*

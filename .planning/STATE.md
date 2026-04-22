@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-04-19)
 ## Current Position
 
 Phase: 3 of 6 (Observer Streaming)
-Plan: 03-01 in progress — Tasks 1-3 complete, Task 4 (human-verify) at checkpoint
+Plan: 03-01 complete (Task 4 deferred — Mux free plan blocks RTMP ingest)
 Status: In progress
-Last activity: 2026-04-22 — Executing 03-01-PLAN.md (Mux + LiveKit egress pipeline; Tasks 1-3 committed)
+Last activity: 2026-04-22 — Completed 03-01-PLAN.md (Tasks 1-3; Task 4 deferred pending Mux Growth plan)
 
 Progress: [███████░░░░░░░░░░░░] 37% (7/19 plans complete)
 
@@ -77,6 +77,8 @@ Recent decisions affecting current work:
   - [03-01]: reconnect_window: 0 on Mux live stream — prevents phantom reconnection after debate ends
   - [03-01]: Belt-and-suspenders idempotency: DB livekit_egress_id null check + listEgress({active:true}) before startRoomCompositeEgress
   - [03-01]: mux_stream_key nulled immediately after egress starts — RTMP ingest credential does not persist in DB
+  - [03-01]: Mux free plan blocks live RTMP ingest — Task 4 verification deferred pending Mux Growth plan upgrade (nonprofit discount request submitted)
+  - [03-01]: Stream endpoint auth uses inline verifyToken (JWT decode, snapshot/route.ts pattern) — no separate requireUserFromRequest helper needed
 
 ### Pending Todos
 
@@ -89,9 +91,10 @@ None yet.
 - [RESOLVED - 02-02]: Moderator role question resolved — mintToken uses role='moderator' for roomAdmin grant; listening_host/listening_moderator slugs are the role identifiers.
 - [RESOLVED - 02-02]: LD segment schedule definitive — 7 segments, 1920 total speaking seconds (32 min), LD_SEGMENTS in lib/debate/segments.ts is canonical.
 - [02-03 follow-up]: /moderator/* Next.js middleware not yet added — client-side gate only in v1; add before production launch.
+- [03-01 deferred]: Live pipeline verification (Task 4) not yet run — Mux Growth plan required for RTMP ingest.  Also confirm 'reduced' vs 'low' latency_mode once live testing is possible.
 
 ## Session Continuity
 
 Last session: 2026-04-22
-Stopped at: 03-01-PLAN.md Tasks 1-3 committed; paused at Task 4 human-verify checkpoint
-Resume file: .planning/phases/03-observer-streaming/03-01-PLAN.md (Task 4)
+Stopped at: 03-01-PLAN.md complete (Task 4 deferred); ready to begin 03-02
+Resume file: None — proceed to 03-02-PLAN.md
