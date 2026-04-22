@@ -70,14 +70,14 @@ Plans:
   4. A "Live (delayed)" indicator is always visible in the observer UI to surface the 5-10 second HLS lag honestly
   5. On desktop, the observer sees a multi-panel layout (video + resizable transcript panel + notes/Emparks panel) with keyboard shortcuts (Space, T, N, F)
   6. On mobile portrait, the observer sees full-width video with a sticky segment timeline and swipe tabs at the bottom; landscape unlocks a two-panel layout
-**Plans**: TBD
+**Plans**: 5 plans in 3 waves (03-01 done; 03-02, 03-03 parallel in Wave 1; 03-04 in Wave 2; 03-05 in Wave 3)
 
 Plans:
-- [ ] 03-01: LiveKit Egress configuration, RTMP to Mux pipeline
-- [ ] 03-02: HLS observer page (hls.js + Safari native fallback), "Live (delayed)" indicator
-- [ ] 03-03: Segment timeline overlay component
-- [ ] 03-04: Desktop multi-panel layout with keyboard shortcuts (UX-02)
-- [ ] 03-05: Mobile tab layout with bottom sheets and landscape two-panel mode (UX-01)
+- [x] 03-01-PLAN.md — LiveKit Egress configuration, RTMP to Mux pipeline (Tasks 1-3 complete; Task 4 deferred pending Mux Growth plan)
+- [ ] 03-02-PLAN.md — HLS observer player (hls.js + Safari native fallback), LIVE-delayed badge, anon-accessible stream endpoint
+- [ ] 03-03-PLAN.md — Segment timeline overlay + anon observer Realtime hook + observer-snapshot endpoint
+- [ ] 03-04-PLAN.md — Desktop multi-panel layout (react-resizable-panels v4) with keyboard shortcuts (UX-02)
+- [ ] 03-05-PLAN.md — Mobile tab layout with bottom sheets and landscape two-panel mode (UX-01); Tailwind v4 @custom-variant orientation
 
 ### Phase 4: Transcription
 **Goal**: Every spoken word during a debate is attributed to the correct speaker, chunked by segment, stored with a debate timestamp, full-text indexed, and visible to observers in near-real-time
@@ -141,7 +141,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 |-------|----------------|--------|-----------|
 | 1. Foundation | 4/4 | Complete | 2026-04-21 |
 | 2. Speaker Room | 0/5 | Not started | - |
-| 3. Observer Streaming | 0/5 | Not started | - |
+| 3. Observer Streaming | 1/5 | In progress | - |
 | 4. Transcription | 0/4 | Not started | - |
 | 5. Notes | 0/4 | Not started | - |
 | 6. Voting and Badges | 0/5 | Not started | - |
