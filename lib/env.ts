@@ -13,8 +13,8 @@ const schema = z.object({
   AUTH_BYPASS: z.enum(['0', '1']).optional(),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   // Mux (Phase 3 — video streaming)
-  MUX_TOKEN_ID: z.string().optional(),
-  MUX_TOKEN_SECRET: z.string().optional(),
+  MUX_TOKEN_ID: z.string().min(1),
+  MUX_TOKEN_SECRET: z.string().min(1),
   MUX_WEBHOOK_SECRET: z.string().optional(),
   // AWS S3 (Phase 3 — recordings storage)
   AWS_ACCESS_KEY_ID: z.string().optional(),

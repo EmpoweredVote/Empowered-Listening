@@ -13,6 +13,7 @@
     "@empoweredvote/ev-ui": "^0.4.4",
     "@livekit/components-react": "^2.9.20",
     "@livekit/components-styles": "^1.2.0",
+    "@mux/mux-node": "^14.0.1",
     "@supabase/supabase-js": "^2.104.0",
     "jose": "^6.2.2",
     "livekit-client": "^2.18.4",
