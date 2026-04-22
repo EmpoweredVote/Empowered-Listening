@@ -18,13 +18,5 @@ export function getSupabaseBrowserClient(): SupabaseClient {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
-  // Supabase Realtime evaluates RLS using the JWT passed via setAuth().
-  // global.headers only covers HTTP requests — the WebSocket connection needs
-  // setAuth() so that postgres_changes events pass the RLS check.
-  const evToken = typeof window !== 'undefined' ? localStorage.getItem('ev_token') : null;
-  if (evToken) {
-    _client.realtime.setAuth(evToken);
-  }
-
   return _client;
 }

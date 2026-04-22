@@ -68,7 +68,9 @@ export function useDebateSync(debateId: string): void {
           if (payload.eventType === 'DELETE') return;
           useDebateStore.getState().applyDebateUpdate(payload.new as DebateRow);
         })
-      .subscribe();
+      .subscribe((status, err) => {
+        console.log('[supabase-rt] channel status:', status, err ?? '');
+      });
 
     return () => {
       cancelled = true;

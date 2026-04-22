@@ -38,6 +38,17 @@ export async function POST(
 
   try {
     if (action === 'start') {
+      // Pre-transition debate to 'live' in its own transaction BEFORE startSegment.
+      // Supabase Realtime evaluates the debate_segments RLS by querying debates.status.
+      // When both happen in the same transaction, Realtime may see the pre-transaction
+      // value ('scheduled') and block the event.  Committing this first ensures the
+      // Realtime worker sees status='live' when it evaluates the segment change.
+      await pool.query(
+        `UPDATE listening.debates
+         SET status = 'live', actual_start = COALESCE(actual_start, NOW())
+         WHERE id = $1 AND status = 'scheduled'`,
+        [debateId],
+      );
       const segment = await startSegment({ debateId, segmentId, moderatorUserId, durationSeconds });
       await applySegmentMicPermissions(debateId, segmentId);
       return NextResponse.json({ segment });

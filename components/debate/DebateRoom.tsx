@@ -42,7 +42,7 @@ function InnerRoom({ debateId, speakers, isModerator }: {
 export function DebateRoom({ debateId, token, serverUrl, speakers, isModerator = false }: DebateRoomProps) {
   useDebateSync(debateId);
   return (
-    <LiveKitRoom token={token} serverUrl={serverUrl} connect video audio data-lk-theme="default" className="min-h-screen bg-slate-950">
+    <LiveKitRoom token={token} serverUrl={serverUrl} connect video data-lk-theme="default" className="min-h-screen bg-slate-950">
       <RoomAudioRenderer />
       <InnerRoom debateId={debateId} speakers={speakers} isModerator={isModerator} />
     </LiveKitRoom>

@@ -52,13 +52,15 @@ export async function applySegmentMicPermissions(debateId: string, segmentId: st
   else if (meta.activeSpeakerRole === 'affirmative') { affPub = true; negPub = false; }
   else { affPub = false; negPub = true; }  // 'negative'
 
-  // Apply — DB first was already done (caller of this helper runs this after RPC commit).
-  // If one of these throws, log and continue so at least one side flips.  The DB is the source of truth;
-  // a client reconnect re-mints tokens that encode the correct grants, so drift self-heals.
-  await Promise.allSettled([
+  const results = await Promise.allSettled([
     setMicPermission(roomName, aff.livekit_identity, affPub),
     setMicPermission(roomName, neg.livekit_identity, negPub),
   ]);
+  const failures = results.filter((r): r is PromiseRejectedResult => r.status === 'rejected');
+  if (failures.length > 0) {
+    const reasons = failures.map(r => String(r.reason)).join('; ');
+    throw new Error(`LiveKit updateParticipant failed for ${failures.length} speaker(s): ${reasons}`);
+  }
 }
 
 /**
