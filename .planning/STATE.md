@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-04-19)
 
 **Core value:** Two speakers and a moderator can run a fair, accountable structured debate that any connected observer can watch live, with a permanent and searchable transcript produced automatically.
-**Current focus:** Phase 2 — Speaker Room
+**Current focus:** Phase 3 — Observer Streaming
 
 ## Current Position
 
-Phase: 2 of 6 (Speaker Room)
-Plan: 02-04 complete (Wave 2, 4 of 7 in current phase)
+Phase: 3 of 6 (Observer Streaming)
+Plan: 03-01 in progress — Tasks 1-3 complete, Task 4 (human-verify) at checkpoint
 Status: In progress
-Last activity: 2026-04-21 — Completed 02-04-PLAN.md (token endpoint + join flow + LiveKit room components)
+Last activity: 2026-04-22 — Executing 03-01-PLAN.md (Mux + LiveKit egress pipeline; Tasks 1-3 committed)
 
 Progress: [███████░░░░░░░░░░░░] 37% (7/19 plans complete)
 
@@ -71,6 +71,12 @@ Recent decisions affecting current work:
   - [02-04]: VideoTrack takes trackRef?: TrackReference; useTracks([Track.Source.Camera]) returns room-wide list, filter by participant.identity per tile
   - [02-04]: @livekit/components-styles imported in DebateRoom.tsx directly — not in globals.css; works because DebateRoom is a client component
   - [02-04]: Slot claim uses conditional UPDATE WHERE user_id IS NULL for atomic race-condition-safe claim
+  - [03-01]: MUX_TOKEN_ID + MUX_TOKEN_SECRET required (z.string().min(1)) in env.ts — fail-fast at boot, not at debate start
+  - [03-01]: Stream endpoint auth uses inline verifyToken (snapshot/route.ts pattern) — no new auth helper needed
+  - [03-01]: Dynamic imports used in segment route for egress path — lazy loading keeps hot path free of egress import cost
+  - [03-01]: reconnect_window: 0 on Mux live stream — prevents phantom reconnection after debate ends
+  - [03-01]: Belt-and-suspenders idempotency: DB livekit_egress_id null check + listEgress({active:true}) before startRoomCompositeEgress
+  - [03-01]: mux_stream_key nulled immediately after egress starts — RTMP ingest credential does not persist in DB
 
 ### Pending Todos
 
@@ -86,6 +92,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-21
-Stopped at: Completed 02-04-PLAN.md — token endpoint + join flow + LiveKit room components complete
-Resume file: None
+Last session: 2026-04-22
+Stopped at: 03-01-PLAN.md Tasks 1-3 committed; paused at Task 4 human-verify checkpoint
+Resume file: .planning/phases/03-observer-streaming/03-01-PLAN.md (Task 4)
