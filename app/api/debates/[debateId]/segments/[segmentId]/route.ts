@@ -51,11 +51,81 @@ export async function POST(
       );
       const segment = await startSegment({ debateId, segmentId, moderatorUserId, durationSeconds });
       await applySegmentMicPermissions(debateId, segmentId);
+
+      // ---- Phase 03-01: bootstrap Mux + LiveKit egress on first-segment start ----
+      const { rows: debateRows } = await pool.query<{
+        livekit_room_name: string;
+        livekit_egress_id: string | null;
+      }>(
+        `SELECT livekit_room_name, livekit_egress_id FROM listening.debates WHERE id = $1`,
+        [debateId],
+      );
+      const debateRow = debateRows[0];
+
+      if (debateRow && !debateRow.livekit_egress_id) {
+        try {
+          const { createMuxLiveStream } = await import('@/lib/mux/client');
+          const { startDebateEgress } = await import('@/lib/livekit/egress-service');
+
+          const { muxStreamId, muxStreamKey, muxPlaybackId } = await createMuxLiveStream();
+
+          await pool.query(
+            `UPDATE listening.debates
+             SET mux_stream_id = $1, mux_stream_key = $2, mux_playback_id = $3
+             WHERE id = $4`,
+            [muxStreamId, muxStreamKey, muxPlaybackId, debateId],
+          );
+
+          const egressId = await startDebateEgress(debateRow.livekit_room_name, muxStreamKey);
+
+          await pool.query(
+            `UPDATE listening.debates
+             SET livekit_egress_id = $1, mux_stream_key = NULL
+             WHERE id = $2`,
+            [egressId, debateId],
+          );
+        } catch (egressErr) {
+          console.error('[egress] bootstrap failed:', egressErr);
+        }
+      }
+
       return NextResponse.json({ segment });
     }
 
     if (action === 'end') {
       const segment = await endSegment({ debateId, segmentId, moderatorUserId });
+
+      // ---- Phase 03-01: shut down egress + finalize Mux on last-segment end ----
+      const { rows: statusRows } = await pool.query<{
+        status: string;
+        livekit_egress_id: string | null;
+        mux_stream_id: string | null;
+      }>(
+        `SELECT status, livekit_egress_id, mux_stream_id
+         FROM listening.debates WHERE id = $1`,
+        [debateId],
+      );
+      const dbg = statusRows[0];
+
+      if (dbg && dbg.status === 'completed') {
+        try {
+          if (dbg.livekit_egress_id) {
+            const { stopDebateEgress } = await import('@/lib/livekit/egress-service');
+            await stopDebateEgress(dbg.livekit_egress_id);
+          }
+          if (dbg.mux_stream_id) {
+            const { completeMuxLiveStream } = await import('@/lib/mux/client');
+            await completeMuxLiveStream(dbg.mux_stream_id);
+          }
+          await pool.query(
+            `UPDATE listening.debates SET livekit_egress_id = NULL WHERE id = $1`,
+            [debateId],
+          );
+        } catch (stopErr) {
+          console.error('[egress] stop failed:', stopErr);
+        }
+      }
+
       // After end, no segment is active — mute both speakers (between-segment state).
       // applySegmentMicPermissions reads the segment_type that was just ended, which would
       // re-grant mics.  Between-segment muting is handled by a separate call path: revoke both.
