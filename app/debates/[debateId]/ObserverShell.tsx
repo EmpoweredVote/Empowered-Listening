@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useObserverDebateSync } from '@/hooks/useObserverDebateSync';
 import DesktopLayout from './DesktopLayout';
+import { MobileLayout } from './MobileLayout';
 
 interface ObserverShellProps {
   debateId: string;
@@ -64,15 +65,13 @@ export default function ObserverShell({
         <DesktopLayout hlsUrl={hlsUrl} status={stream.status} topic={topic} />
       </div>
 
-      {/* Mobile fallback — below md */}
-      {/* 03-05 swaps this entire block out */}
-      <div className="md:hidden min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-6">
-        <div className="text-center max-w-sm">
-          <p className="text-lg font-medium text-slate-200 mb-3">Desktop required</p>
-          <p className="text-sm text-slate-400">
-            Open this page on a desktop browser for the full experience.
-          </p>
-        </div>
+      {/* Mobile (< md) */}
+      <div className="md:hidden h-screen">
+        <MobileLayout
+          hlsUrl={hlsUrl}
+          status={stream.status}
+          topic={topic}
+        />
       </div>
     </>
   );
