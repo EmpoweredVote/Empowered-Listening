@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-04-19)
 ## Current Position
 
 Phase: 3 of 6 (Observer Streaming)
-Plan: 03-01 complete (Task 4 deferred — Mux free plan blocks RTMP ingest)
+Plan: 03-02 complete
 Status: In progress
-Last activity: 2026-04-22 — Completed 03-01-PLAN.md (Tasks 1-3; Task 4 deferred pending Mux Growth plan)
+Last activity: 2026-04-22 — Completed 03-02-PLAN.md (HLS observer player + anon stream endpoint)
 
-Progress: [███████░░░░░░░░░░░░] 37% (7/19 plans complete)
+Progress: [████████░░░░░░░░░░░] 42% (8/19 plans complete)
 
 ## Performance Metrics
 
@@ -79,6 +79,12 @@ Recent decisions affecting current work:
   - [03-01]: mux_stream_key nulled immediately after egress starts — RTMP ingest credential does not persist in DB
   - [03-01]: Mux free plan blocks live RTMP ingest — Task 4 verification deferred pending Mux Growth plan upgrade (nonprofit discount request submitted)
   - [03-01]: Stream endpoint auth uses inline verifyToken (JWT decode, snapshot/route.ts pattern) — no separate requireUserFromRequest helper needed
+  - [03-02]: Stream endpoint made anonymous — verifyToken removed; service-role pool status gate added inline in SQL (not relying on RLS alone)
+  - [03-02]: SQL status gate explicit (AND status IN ('live', 'completed')) — service role bypasses RLS, so gate must be in query
+  - [03-02]: 404 returns 'Debate not available' for both missing and wrong-status debates — no info leak about scheduled/cancelled debates
+  - [03-02]: lowLatencyMode: false in hls.js — Mux 'reduced' latency is standard HLS; lowLatencyMode: true would misinterpret manifests
+  - [03-02]: Direct hls.js import (not dynamic import) — 'use client' directive already isolates component to client bundle
+  - [03-02]: HlsPlayer parent contract: mount only when src available (status=live AND mux_playback_id non-null) — hls.js does not retry on 404
 
 ### Pending Todos
 
@@ -96,5 +102,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-04-22
-Stopped at: 03-01-PLAN.md complete (Task 4 deferred); ready to begin 03-02
-Resume file: None — proceed to 03-02-PLAN.md
+Stopped at: 03-02-PLAN.md complete; ready to begin 03-03
+Resume file: None — proceed to 03-03-PLAN.md
