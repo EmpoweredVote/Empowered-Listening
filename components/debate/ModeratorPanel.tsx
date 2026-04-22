@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useDebateStore } from '@/store/debateStore';
 import { useSegmentAutoExpire } from '@/hooks/useSegmentAutoExpire';
 import { LD_SEGMENTS } from '@/lib/debate/segments';
@@ -21,6 +21,8 @@ export function ModeratorPanel({ debateId }: ModeratorPanelProps) {
   // segment status to 'active' via Realtime — we could sync from store.status but
   // local state is simpler since the moderator is the one driving).
   const [prepSpeakerId, setPrepSpeakerId] = useState<string | null>(null);
+  // Shared across both PrepButtons — prevents concurrent prep API calls (double-click / both buttons).
+  const prepBusyRef = useRef(false);
 
   const segments = useDebateStore(s => s.segments);
   const speakers = useDebateStore(s => s.speakers);
@@ -100,6 +102,7 @@ export function ModeratorPanel({ debateId }: ModeratorPanelProps) {
               speaker={affSpeaker}
               segmentActive={!!active}
               prepSpeakerId={prepSpeakerId}
+              prepBusyRef={prepBusyRef}
               onPrepStart={() => setPrepSpeakerId(affSpeaker.id)}
               onPrepEnd={() => setPrepSpeakerId(null)}
             />
@@ -110,6 +113,7 @@ export function ModeratorPanel({ debateId }: ModeratorPanelProps) {
               speaker={negSpeaker}
               segmentActive={!!active}
               prepSpeakerId={prepSpeakerId}
+              prepBusyRef={prepBusyRef}
               onPrepStart={() => setPrepSpeakerId(negSpeaker.id)}
               onPrepEnd={() => setPrepSpeakerId(null)}
             />
@@ -125,41 +129,41 @@ interface PrepButtonProps {
   speaker: { id: string; display_name: string; prep_time_seconds: number };
   segmentActive: boolean;
   prepSpeakerId: string | null;
+  prepBusyRef: React.RefObject<boolean>;
   onPrepStart: () => void;
   onPrepEnd: () => void;
 }
 
-// Button text and disabled state are driven by prepSpeakerId
-// (the moderator's local record of which speaker's prep is active), not by the
-// segment-wide paused status.  This ensures only the correct speaker's button
-// shows "End prep" while the other speaker's button is disabled during active prep.
 function PrepButton({
-  debateId, speaker, segmentActive, prepSpeakerId, onPrepStart, onPrepEnd,
+  debateId, speaker, segmentActive, prepSpeakerId, prepBusyRef, onPrepStart, onPrepEnd,
 }: PrepButtonProps) {
   const isThisSpeakersPrep = prepSpeakerId === speaker.id;
   const isAnyPrepActive = prepSpeakerId !== null;
   const action: 'start' | 'end' = isThisSpeakersPrep ? 'end' : 'start';
 
   async function go() {
+    // Shared ref blocks concurrent calls from double-click or pressing both buttons.
+    if (prepBusyRef.current) return;
+    prepBusyRef.current = true;
+    // Optimistic update — immediately disables the other button before fetch returns.
+    if (action === 'start') onPrepStart();
+    else onPrepEnd();
+
     const token = localStorage.getItem('ev_token');
     const res = await fetch(`/api/debates/${debateId}/prep`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ action, speakerId: speaker.id }),
     });
-    if (res.ok) {
-      if (action === 'start') onPrepStart();
-      else onPrepEnd();
-    } else {
+    if (!res.ok) {
+      // Revert optimistic update on failure.
+      if (action === 'start') onPrepEnd();
+      else onPrepStart();
       alert(`Prep action failed: ${await res.text().catch(() => res.statusText)}`);
     }
+    prepBusyRef.current = false;
   }
 
-  // Disabled logic:
-  // - no active segment -> cannot prep
-  // - trying to Start but speaker has no pool -> disabled
-  // - trying to Start but ANY prep is currently active (other speaker) -> disabled
-  // - trying to End: always enabled (this is the only way out of prep for this speaker)
   const disabled =
     !segmentActive ||
     (action === 'start' && speaker.prep_time_seconds <= 0) ||
