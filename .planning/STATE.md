@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-04-19)
 
 **Core value:** Two speakers and a moderator can run a fair, accountable structured debate that any connected observer can watch live, with a permanent and searchable transcript produced automatically.
-**Current focus:** Phase 3 — Observer Streaming
+**Current focus:** Phase 3 complete — ready for Phase 4 (Transcript)
 
 ## Current Position
 
-Phase: 3 of 6 (Observer Streaming)
-Plan: 03-04 complete
-Status: In progress
-Last activity: 2026-04-22 — Completed 03-04-PLAN.md (desktop observer layout: page route, ObserverShell, DesktopLayout)
+Phase: 3 of 6 (Observer Streaming) — functionally complete
+Plan: 03-05 complete (final Phase 3 plan)
+Status: Phase 3 complete (03-01 Task 4 deferred pending Mux Growth plan upgrade)
+Last activity: 2026-04-22 — Completed 03-05-PLAN.md (mobile observer layout: MobileTabs, MobileLayout, @custom-variant portrait/landscape)
 
-Progress: [██████████░░░░░░░░░] 53% (10/19 plans complete)
+Progress: [███████████░░░░░░░░] 58% (11/19 plans complete)
 
 ## Performance Metrics
 
@@ -93,6 +93,9 @@ Recent decisions affecting current work:
   - [03-04]: autoSaveId prop removed in v4 — useDefaultLayout({ id }) hook replaces it; returns defaultLayout + onLayoutChanged for Group
   - [03-04]: videoContainerRef is a div wrapper; querySelector('video') used to reach HTMLVideoElement for Space key play/pause
   - [03-04]: /debates/[debateId] route is fully anonymous — no auth gate; middleware.ts desktop gate only covers /join/* paths
+  - [03-05]: @custom-variant block-form required in Tailwind v4.2.2 — short-form (@custom-variant NAME (@media CONDITION);) rejected by PostCSS with CssSyntaxError
+  - [03-05]: CSS portrait:/landscape: classes work after @custom-variant block-form declarations — no JS window.matchMedia fallback needed
+  - [03-05]: HlsPlayer is default export (export default function HlsPlayer) — use import HlsPlayer from './HlsPlayer', not named import
 
 ### Pending Todos
 
@@ -110,5 +113,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-04-22
-Stopped at: 03-04-PLAN.md complete; ready to begin 03-05
-Resume file: None — proceed to 03-05-PLAN.md
+Stopped at: 03-05-PLAN.md complete; Phase 3 functionally complete
+Resume file: None — proceed to Phase 4 (Transcript)
