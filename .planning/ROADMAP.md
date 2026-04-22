@@ -75,8 +75,8 @@ Plans:
 Plans:
 - [x] 03-01-PLAN.md — LiveKit Egress configuration, RTMP to Mux pipeline (Tasks 1-3 complete; Task 4 deferred pending Mux Growth plan)
 - [x] 03-02-PLAN.md — HLS observer player (hls.js + Safari native fallback), LIVE-delayed badge, anon-accessible stream endpoint
-- [ ] 03-03-PLAN.md — Segment timeline overlay + anon observer Realtime hook + observer-snapshot endpoint
-- [ ] 03-04-PLAN.md — Desktop multi-panel layout (react-resizable-panels v4) with keyboard shortcuts (UX-02)
+- [x] 03-03-PLAN.md — Segment timeline overlay + anon observer Realtime hook + observer-snapshot endpoint
+- [x] 03-04-PLAN.md — Desktop multi-panel layout (react-resizable-panels v4) with keyboard shortcuts (UX-02)
 - [ ] 03-05-PLAN.md — Mobile tab layout with bottom sheets and landscape two-panel mode (UX-01); Tailwind v4 @custom-variant orientation
 
 ### Phase 4: Transcription
@@ -141,7 +141,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 |-------|----------------|--------|-----------|
 | 1. Foundation | 4/4 | Complete | 2026-04-21 |
 | 2. Speaker Room | 0/5 | Not started | - |
-| 3. Observer Streaming | 2/5 | In progress | - |
+| 3. Observer Streaming | 4/5 | In progress | - |
 | 4. Transcription | 0/4 | Not started | - |
 | 5. Notes | 0/4 | Not started | - |
 | 6. Voting and Badges | 0/5 | Not started | - |

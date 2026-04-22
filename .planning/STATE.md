@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-04-19)
 ## Current Position
 
 Phase: 3 of 6 (Observer Streaming)
-Plan: 03-03 complete
+Plan: 03-04 complete
 Status: In progress
-Last activity: 2026-04-22 — Completed 03-03-PLAN.md (anon observer-snapshot + useObserverDebateSync + SegmentTimeline)
+Last activity: 2026-04-22 — Completed 03-04-PLAN.md (desktop observer layout: page route, ObserverShell, DesktopLayout)
 
-Progress: [█████████░░░░░░░░░░] 47% (9/19 plans complete)
+Progress: [██████████░░░░░░░░░] 53% (10/19 plans complete)
 
 ## Performance Metrics
 
@@ -89,6 +89,10 @@ Recent decisions affecting current work:
   - [03-03]: useObserverDebateSync does NOT call setAuth() — migration 20260421000002 confirmed anon role on all three listening tables
   - [03-03]: SegmentTimeline renders LD_SEGMENTS placeholder pills when store is empty — prevents flash of empty layout before first snapshot
   - [03-03]: Observer channel name `observer-debate-${debateId}` distinct from participant `debate-${debateId}` — prevents collision edge case
+  - [03-04]: react-resizable-panels v4 renamed exports: Group/Panel/Separator (not PanelGroup/PanelResizeHandle); orientation prop (not direction)
+  - [03-04]: autoSaveId prop removed in v4 — useDefaultLayout({ id }) hook replaces it; returns defaultLayout + onLayoutChanged for Group
+  - [03-04]: videoContainerRef is a div wrapper; querySelector('video') used to reach HTMLVideoElement for Space key play/pause
+  - [03-04]: /debates/[debateId] route is fully anonymous — no auth gate; middleware.ts desktop gate only covers /join/* paths
 
 ### Pending Todos
 
@@ -106,5 +110,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-04-22
-Stopped at: 03-03-PLAN.md complete; ready to begin 03-04
-Resume file: None — proceed to 03-04-PLAN.md
+Stopped at: 03-04-PLAN.md complete; ready to begin 03-05
+Resume file: None — proceed to 03-05-PLAN.md
