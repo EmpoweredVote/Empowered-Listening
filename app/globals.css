@@ -1,6 +1,21 @@
 @import "tailwindcss";
 
 /*
+ * Tailwind v4 orientation modifiers.
+ * v4 does not ship landscape:/portrait: built-in. Without these @custom-variant
+ * declarations the classes silently no-op.
+ */
+@custom-variant landscape {
+  @media (orientation: landscape) { @slot; }
+}
+@custom-variant portrait {
+  @media (orientation: portrait) { @slot; }
+}
+
+/* iOS Safari scrollbar suppression for MobileTabs */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+/*
  * EV-UI Design Tokens for Tailwind v4
  *
  * Source: @empoweredvote/ev-ui/src/tokens.js
