@@ -1,5 +1,4 @@
-import { DefaultDeepgramClient, type Deepgram } from '@deepgram/sdk';
-import { AudioStream, type RemoteTrack } from '@livekit/rtc-node';
+import type { RemoteTrack, AudioStream as AudioStreamType } from '@livekit/rtc-node';
 import { env } from '@/lib/env';
 import { pool } from '@/lib/db/pool';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
@@ -8,35 +7,35 @@ import { computeDebateTimeMmss } from './debate-time';
 const UNAVAILABLE_THRESHOLD = 0.10;
 const INAUDIBLE_THRESHOLD = 0.20;
 
-// V1Socket type from the Deepgram SDK
-type V1Socket = Awaited<ReturnType<InstanceType<typeof DefaultDeepgramClient>['listen']['v1']['connect']>>;
-
 export class DeepgramLiveConnection {
-  private socket: V1Socket | null = null;
+  // Both assigned in start() via dynamic imports
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private socket: any = null;
+  private audioStream!: AudioStreamType;
   private stopped = false;
   private reconnectAttempt = 0;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
-  private audioStream: AudioStream;
 
   constructor(
     private readonly debateId: string,
-    private readonly speakerId: string,       // listening.debate_speakers.id (UUID)
+    private readonly speakerId: string,
     private readonly track: RemoteTrack,
     private readonly debateActualStart: Date,
-  ) {
-    // Resample from WebRTC's 48kHz to 16kHz (Deepgram standard)
-    this.audioStream = new AudioStream(track, 16000);
-  }
+  ) {}
 
   async start(): Promise<void> {
+    // Lazy-load native binaries only when transcription actually begins
+    const { AudioStream } = await import('@livekit/rtc-node');
+    this.audioStream = new AudioStream(this.track, 16000);
+
     await this.connectDeepgram();
-    // Fire-and-forget audio streaming loop
     this.streamAudio().catch(err => {
       console.error('[deepgram] streamAudio error:', err);
     });
   }
 
   private async connectDeepgram(): Promise<void> {
+    const { DefaultDeepgramClient } = await import('@deepgram/sdk');
     const client = new DefaultDeepgramClient({ apiKey: env.DEEPGRAM_API_KEY });
 
     const socket = await client.listen.v1.connect({
@@ -45,7 +44,6 @@ export class DeepgramLiveConnection {
       interim_results: 'true',
       smart_format: 'false',
       punctuate: 'false',
-      // filler_words passed as extra query param (not in v5 SDK ConnectArgs)
       extra: { filler_words: 'true' },
       encoding: 'linear16',
       sample_rate: 16000,
@@ -53,24 +51,24 @@ export class DeepgramLiveConnection {
       Authorization: `Token ${env.DEEPGRAM_API_KEY}`,
     });
 
-    socket.on('message', async (data: Deepgram.listen.ListenV1Results | Deepgram.listen.ListenV1Metadata | Deepgram.listen.ListenV1UtteranceEnd | Deepgram.listen.ListenV1SpeechStarted) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    socket.on('message', async (data: any) => {
       if (data.type !== 'Results') return;
-      const result = data as Deepgram.listen.ListenV1Results;
-      const alt = result.channel?.alternatives?.[0];
+      const alt = data.channel?.alternatives?.[0];
       if (!alt?.transcript) return;
 
-      if (!result.is_final) {
+      if (!data.is_final) {
         await this.broadcastInterim(alt.transcript);
         return;
       }
 
-      // Filter low-confidence chunks
       if ((alt.confidence ?? 0) < UNAVAILABLE_THRESHOLD) return;
 
-      // Filter individual inaudible words
       const text = (alt.words ?? [])
-        .filter(w => (w.confidence ?? 0) >= INAUDIBLE_THRESHOLD)
-        .map(w => w.word ?? '')
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .filter((w: any) => (w.confidence ?? 0) >= INAUDIBLE_THRESHOLD)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .map((w: any) => w.word ?? '')
         .join(' ')
         .trim();
 
@@ -93,7 +91,6 @@ export class DeepgramLiveConnection {
   private async streamAudio(): Promise<void> {
     for await (const frame of this.audioStream) {
       if (this.stopped || !this.socket) break;
-      // Convert Int16Array to Buffer BEFORE sending — Deepgram rejects Int16Array directly
       const pcmBuffer = Buffer.from(frame.data.buffer, frame.data.byteOffset, frame.data.byteLength);
       this.socket.sendMedia(pcmBuffer);
     }
@@ -128,12 +125,7 @@ export class DeepgramLiveConnection {
       await channel.send({
         type: 'broadcast',
         event: 'final',
-        payload: {
-          speakerId: this.speakerId,
-          text,
-          spokenAt: spokenAt.toISOString(),
-          debateTimeMmss,
-        },
+        payload: { speakerId: this.speakerId, text, spokenAt: spokenAt.toISOString(), debateTimeMmss },
       });
       await supabase.removeChannel(channel);
     } catch (err) {
@@ -148,10 +140,7 @@ export class DeepgramLiveConnection {
       await channel.send({
         type: 'broadcast',
         event: 'interim',
-        payload: {
-          speakerId: this.speakerId,
-          text,
-        },
+        payload: { speakerId: this.speakerId, text },
       });
       await supabase.removeChannel(channel);
     } catch (err) {
@@ -182,11 +171,7 @@ export class DeepgramLiveConnection {
       this.reconnectTimer = null;
     }
     if (this.socket) {
-      try {
-        this.socket.close();
-      } catch {
-        // ignore errors on close
-      }
+      try { this.socket.close(); } catch { /* ignore */ }
       this.socket = null;
     }
   }
