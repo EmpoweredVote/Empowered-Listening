@@ -27,10 +27,10 @@ Scope: Architecture doc Phases 1–5 (Speaker MVP → Observer Streaming → Tra
 
 ### Observer Streaming
 
-- [ ] **OBS-01**: LiveKit Egress composites the speaker room into a single feed and pushes via RTMP to Cloudflare Stream
-- [ ] **OBS-02**: Observer page delivers HLS stream via hls.js with native Safari HLS fallback
-- [ ] **OBS-03**: Segment timeline overlay visible to all observers showing current phase and active speaker
-- [ ] **OBS-04**: "Live (delayed)" indicator surfaced honestly at all times in observer UI
+- [x] **OBS-01**: LiveKit Egress composites the speaker room into a single feed and pushes via RTMP to Mux (code verified; live E2E test deferred pending Mux Growth plan)
+- [x] **OBS-02**: Observer page delivers HLS stream via hls.js with native Safari HLS fallback
+- [x] **OBS-03**: Segment timeline overlay visible to all observers showing current phase and active speaker
+- [x] **OBS-04**: "Live (delayed)" indicator surfaced honestly at all times in observer UI
 
 ### Transcription
 
@@ -56,8 +56,8 @@ Scope: Architecture doc Phases 1–5 (Speaker MVP → Observer Streaming → Tra
 
 ### UX & Accessibility
 
-- [ ] **UX-01**: Observer mobile experience: portrait default with full-width video and sticky segment timeline; swipe tabs at bottom (Transcript, Notes, Flag); voting as thumb-reachable bottom sheets; landscape unlocks two-panel layout
-- [ ] **UX-02**: Observer desktop experience: multi-panel layout (primary video panel + resizable transcript panel + notes/Emparks panel); voting as dismissible modals; keyboard shortcuts (Space, T, N, F)
+- [x] **UX-01**: Observer mobile experience: portrait default with full-width video and sticky segment timeline; swipe tabs at bottom (Transcript, Notes, Flag); voting as thumb-reachable bottom sheets; landscape unlocks two-panel layout
+- [x] **UX-02**: Observer desktop experience: multi-panel layout (primary video panel + resizable transcript panel + notes/Emparks panel); voting as dismissible modals; keyboard shortcuts (Space, T, N, F)
 - [ ] **UX-03**: Speaker and moderator UI is desktop-only in v1; mobile visitors see a clear "Open this on desktop" message and cannot join as speaker/moderator
 - [ ] **UX-04**: Timer color states (normal / warning / red_mode / expired) render with identical colors, thresholds, and iconography across all surfaces (observer, speaker, moderator)
 - [ ] **UX-05**: All interactive elements keyboard-accessible on desktop; transcript updates use aria-live polite; WCAG AA contrast minimum; color is never the sole signal for timer state
@@ -124,12 +124,12 @@ Deferred to future milestone (architecture doc Phases 6–10).
 | DEBATE-07 | Phase 2 | Pending |
 | DEBATE-08 | Phase 2 | Pending |
 | UX-04 | Phase 2 | Pending |
-| OBS-01 | Phase 3 | Pending |
-| OBS-02 | Phase 3 | Pending |
-| OBS-03 | Phase 3 | Pending |
-| OBS-04 | Phase 3 | Pending |
-| UX-01 | Phase 3 | Pending |
-| UX-02 | Phase 3 | Pending |
+| OBS-01 | Phase 3 | Complete |
+| OBS-02 | Phase 3 | Complete |
+| OBS-03 | Phase 3 | Complete |
+| OBS-04 | Phase 3 | Complete |
+| UX-01 | Phase 3 | Complete |
+| UX-02 | Phase 3 | Complete |
 | TRANS-01 | Phase 4 | Pending |
 | TRANS-02 | Phase 4 | Pending |
 | TRANS-03 | Phase 4 | Pending |
@@ -152,4 +152,4 @@ Deferred to future milestone (architecture doc Phases 6–10).
 
 ---
 *Requirements defined: 2026-04-19*
-*Last updated: 2026-04-19 — traceability populated after roadmap creation*
+*Last updated: 2026-04-22 — Phase 3 requirements marked Complete*
