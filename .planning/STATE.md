@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-04-19)
 
 **Core value:** Two speakers and a moderator can run a fair, accountable structured debate that any connected observer can watch live, with a permanent and searchable transcript produced automatically.
-**Current focus:** Phase 3 complete — ready for Phase 4 (Transcript)
+**Current focus:** Phase 4 (Transcription) — 04-01 and 04-03 complete, ready for 04-02 (worker)
 
 ## Current Position
 
-Phase: 3 of 6 (Observer Streaming) — functionally complete
-Plan: 03-05 complete (final Phase 3 plan)
-Status: Phase 3 complete (03-01 Task 4 deferred pending Mux Growth plan upgrade)
-Last activity: 2026-04-22 — Completed 03-05-PLAN.md (mobile observer layout: MobileTabs, MobileLayout, @custom-variant portrait/landscape)
+Phase: 4 of 6 (Transcription) — in progress
+Plan: 04-01 complete (2 of 4 plans in Phase 4 have summaries: 04-01, 04-03)
+Status: In progress (04-02, 04-04 remain)
+Last activity: 2026-04-23 — Completed 04-01-PLAN.md (worker foundation: DEEPGRAM_API_KEY, worker role token, computeDebateTimeMmss TDD)
 
-Progress: [███████████░░░░░░░░] 58% (11/19 plans complete)
+Progress: [████████████████░░░░] 80% (16/20 plans complete)
 
 ## Performance Metrics
 
@@ -96,6 +96,10 @@ Recent decisions affecting current work:
   - [03-05]: @custom-variant block-form required in Tailwind v4.2.2 — short-form (@custom-variant NAME (@media CONDITION);) rejected by PostCSS with CssSyntaxError
   - [03-05]: CSS portrait:/landscape: classes work after @custom-variant block-form declarations — no JS window.matchMedia fallback needed
   - [03-05]: HlsPlayer is default export (export default function HlsPlayer) — use import HlsPlayer from './HlsPlayer', not named import
+  - [04-01]: DEEPGRAM_API_KEY uses z.string().min(1) — same fail-fast pattern as MUX_TOKEN_ID; server refuses to start without it
+  - [04-01]: worker role: canPublish=false, canPublishData=false, roomAdmin=false — subscribe-only LiveKit token; identity convention is `transcription-worker:${debateId}`
+  - [04-01]: computeDebateTimeMmss uses wall-clock difference NOT Deepgram word.start timestamps — avoids reset-on-reconnect bugs
+  - [04-01]: vitest/globals triple-slash reference in test files — preferred over tsconfig types array (avoids restricting Next.js type auto-discovery)
 
 ### Pending Todos
 
@@ -112,6 +116,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-22
-Stopped at: 03-05-PLAN.md complete; Phase 3 functionally complete
-Resume file: None — proceed to Phase 4 (Transcript)
+Last session: 2026-04-23T14:11:11Z
+Stopped at: 04-01-PLAN.md complete; worker foundation (DEEPGRAM_API_KEY, worker token, computeDebateTimeMmss) delivered
+Resume file: None — proceed to 04-02 (transcription worker)
