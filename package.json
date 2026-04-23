@@ -7,7 +7,8 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "vitest run"
   },
   "dependencies": {
     "@deepgram/sdk": "^5.0.0",
@@ -39,6 +40,7 @@
     "postcss": "^8.5.10",
     "supabase": "^2.93.0",
     "tailwindcss": "^4.2.2",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.5"
   }
 }
