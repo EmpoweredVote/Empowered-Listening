@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-04-19)
 ## Current Position
 
 Phase: 4 of 6 (Transcription) — in progress
-Plan: 04-01 complete (2 of 4 plans in Phase 4 have summaries: 04-01, 04-03)
+Plan: 04-03 complete (2 of 4 plans in Phase 4 have summaries: 04-01, 04-03)
 Status: In progress (04-02, 04-04 remain)
-Last activity: 2026-04-23 — Completed 04-01-PLAN.md (worker foundation: DEEPGRAM_API_KEY, worker role token, computeDebateTimeMmss TDD)
+Last activity: 2026-04-23 — Completed 04-03-PLAN.md (observer transcript panel: migration, GET endpoint, hook, TranscriptPanel, layout wiring)
 
 Progress: [████████████████░░░░] 80% (16/20 plans complete)
 
@@ -100,6 +100,11 @@ Recent decisions affecting current work:
   - [04-01]: worker role: canPublish=false, canPublishData=false, roomAdmin=false — subscribe-only LiveKit token; identity convention is `transcription-worker:${debateId}`
   - [04-01]: computeDebateTimeMmss uses wall-clock difference NOT Deepgram word.start timestamps — avoids reset-on-reconnect bugs
   - [04-01]: vitest/globals triple-slash reference in test files — preferred over tsconfig types array (avoids restricting Next.js type auto-discovery)
+  - [04-03]: TranscriptPanel uses allocated_seconds (not duration_seconds) — matches DebateSegmentRow and DB column; plan interface had wrong field name
+  - [04-03]: GET transcript endpoint gates on debate existence only (not status) — transcript is public civic record, accessible regardless of debate status
+  - [04-03]: Broadcast-ephemeral pattern: load DB snapshot via GET first, then subscribe — useTranscriptSync handles subscription only, not initial load
+  - [04-03]: speakersMap and segmentsArray built inline in each layout from useDebateStore — no prop drilling through ObserverShell needed
+  - [04-03]: Segment display name derived from LD_SEGMENTS lookup at module level — not stored in DB
 
 ### Pending Todos
 
