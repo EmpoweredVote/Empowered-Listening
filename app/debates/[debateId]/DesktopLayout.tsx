@@ -4,18 +4,50 @@ import { useEffect, useRef, useState } from 'react';
 import { Group, Panel, Separator, useDefaultLayout } from 'react-resizable-panels';
 import HlsPlayer from './HlsPlayer';
 import { SegmentTimeline } from './SegmentTimeline';
+import { TranscriptPanel } from '@/components/transcript/TranscriptPanel';
+import { useDebateStore } from '@/store/debateStore';
+import { LD_SEGMENTS } from '@/lib/debate/segments';
 
 interface DesktopLayoutProps {
+  debateId: string;
   hlsUrl: string | null;
   status: 'live' | 'completed' | 'scheduled';
   topic: string | null;
 }
 
-export default function DesktopLayout({ hlsUrl, status, topic }: DesktopLayoutProps) {
+// Map segment_type to display name from canonical LD_SEGMENTS list
+const SEGMENT_DISPLAY_NAME = Object.fromEntries(
+  LD_SEGMENTS.map(s => [s.segmentType, s.displayName]),
+);
+
+export default function DesktopLayout({ debateId, hlsUrl, status, topic }: DesktopLayoutProps) {
   // SSR hydration guard — react-resizable-panels reads localStorage for sizes.
   // Rendering a skeleton on first pass prevents hydration mismatch.
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
+
+  // Build speakers map and segments array from debate store for TranscriptPanel
+  const storeSpeakers = useDebateStore(s => s.speakers);
+  const storeSegments = useDebateStore(s => s.segments);
+
+  const speakersMap = Object.fromEntries(
+    Object.values(storeSpeakers).map(s => [
+      s.id,
+      {
+        displayName: s.display_name,
+        role: s.role as 'affirmative' | 'negative' | 'moderator',
+      },
+    ]),
+  );
+
+  const segmentsArray = Object.values(storeSegments)
+    .sort((a, b) => a.sequence_order - b.sequence_order)
+    .map(s => ({
+      id: s.id,
+      name: SEGMENT_DISPLAY_NAME[s.segment_type] ?? s.segment_type,
+      actual_start: s.actual_start,
+      allocated_seconds: s.allocated_seconds,
+    }));
 
   // Panel size persistence via useDefaultLayout hook (v4 replacement for autoSaveId prop)
   const { defaultLayout, onLayoutChanged } = useDefaultLayout({
@@ -115,16 +147,20 @@ export default function DesktopLayout({ hlsUrl, status, topic }: DesktopLayoutPr
 
         <Separator className="w-1 cursor-col-resize bg-slate-800 hover:bg-blue-600 transition-colors" />
 
-        {/* Transcript panel — Phase 4 placeholder */}
+        {/* Transcript panel */}
         <Panel defaultSize={25} minSize={15}>
           <div
             ref={transcriptPanelRef}
             tabIndex={0}
             role="region"
             aria-label="Transcript panel"
-            className="h-full overflow-y-auto p-4 text-sm text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="h-full overflow-hidden focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            Transcript &mdash; available in a future update (Phase 4).
+            <TranscriptPanel
+              debateId={debateId}
+              speakers={speakersMap}
+              segments={segmentsArray}
+            />
           </div>
         </Panel>
 

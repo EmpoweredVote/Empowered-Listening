@@ -62,12 +62,13 @@ export default function ObserverShell({
     <>
       {/* Desktop layout — md+ screens */}
       <div className="hidden md:block h-screen bg-slate-950 text-slate-100">
-        <DesktopLayout hlsUrl={hlsUrl} status={stream.status} topic={topic} />
+        <DesktopLayout debateId={debateId} hlsUrl={hlsUrl} status={stream.status} topic={topic} />
       </div>
 
       {/* Mobile (< md) */}
       <div className="md:hidden h-screen">
         <MobileLayout
+          debateId={debateId}
           hlsUrl={hlsUrl}
           status={stream.status}
           topic={topic}

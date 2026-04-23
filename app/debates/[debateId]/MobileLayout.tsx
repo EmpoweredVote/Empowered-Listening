@@ -3,14 +3,45 @@
 import HlsPlayer from './HlsPlayer';
 import { SegmentTimeline } from './SegmentTimeline';
 import { MobileTabs, type MobileTab } from './MobileTabs';
+import { TranscriptPanel } from '@/components/transcript/TranscriptPanel';
+import { useDebateStore } from '@/store/debateStore';
+import { LD_SEGMENTS } from '@/lib/debate/segments';
 
 interface MobileLayoutProps {
+  debateId: string;
   hlsUrl: string | null;
   status: 'live' | 'completed' | 'scheduled';
   topic: string | null;
 }
 
-export function MobileLayout({ hlsUrl, status, topic }: MobileLayoutProps) {
+// Map segment_type to display name from canonical LD_SEGMENTS list
+const SEGMENT_DISPLAY_NAME = Object.fromEntries(
+  LD_SEGMENTS.map(s => [s.segmentType, s.displayName]),
+);
+
+export function MobileLayout({ debateId, hlsUrl, status, topic }: MobileLayoutProps) {
+  // Build speakers map and segments array from debate store for TranscriptPanel
+  const storeSpeakers = useDebateStore(s => s.speakers);
+  const storeSegments = useDebateStore(s => s.segments);
+
+  const speakersMap = Object.fromEntries(
+    Object.values(storeSpeakers).map(s => [
+      s.id,
+      {
+        displayName: s.display_name,
+        role: s.role as 'affirmative' | 'negative' | 'moderator',
+      },
+    ]),
+  );
+
+  const segmentsArray = Object.values(storeSegments)
+    .sort((a, b) => a.sequence_order - b.sequence_order)
+    .map(s => ({
+      id: s.id,
+      name: SEGMENT_DISPLAY_NAME[s.segment_type] ?? s.segment_type,
+      actual_start: s.actual_start,
+      allocated_seconds: s.allocated_seconds,
+    }));
   const videoContent = (
     <div className="relative w-full aspect-video bg-black">
       {hlsUrl ? (
@@ -41,8 +72,12 @@ export function MobileLayout({ hlsUrl, status, topic }: MobileLayoutProps) {
       id: 'transcript',
       label: 'Transcript',
       content: (
-        <div className="p-4 text-sm text-slate-400">
-          Transcript — available in a future update (Phase 4).
+        <div className="h-full overflow-hidden">
+          <TranscriptPanel
+            debateId={debateId}
+            speakers={speakersMap}
+            segments={segmentsArray}
+          />
         </div>
       ),
     },
