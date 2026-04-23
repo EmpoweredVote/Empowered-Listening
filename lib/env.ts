@@ -27,6 +27,8 @@ const schema = z.object({
   LIVEKIT_API_SECRET: z.string().optional(),
   // App origin (Phase 2 — share links)
   NEXT_PUBLIC_APP_ORIGIN: z.string().url().optional(),
+  // Deepgram (Phase 4 — live transcription)
+  DEEPGRAM_API_KEY: z.string().min(1),
 });
 
 export const env = schema.parse(process.env);

@@ -1,7 +1,7 @@
 import { AccessToken, type VideoGrant } from 'livekit-server-sdk';
 import { env } from '@/lib/env';
 
-export type ParticipantRole = 'speaker' | 'moderator';
+export type ParticipantRole = 'speaker' | 'moderator' | 'worker';
 
 export interface MintTokenInput {
   identity: string;
@@ -24,9 +24,9 @@ export async function mintToken(input: MintTokenInput): Promise<string> {
     room: input.roomName,
     roomJoin: true,
     canSubscribe: true,
-    canPublish: input.role === 'speaker',
-    canPublishData: true,
-    roomAdmin: input.role === 'moderator',
+    canPublish: input.role === 'speaker',        // workers cannot publish
+    canPublishData: input.role !== 'worker',    // workers don't send data messages
+    roomAdmin: input.role === 'moderator',       // workers have no admin rights
   };
 
   at.addGrant(grant);
