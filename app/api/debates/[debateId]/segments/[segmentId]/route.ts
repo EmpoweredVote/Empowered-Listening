@@ -4,6 +4,8 @@ import { requireModeratorFromRequest, ModeratorGateError } from '@/lib/auth/requ
 import { startSegment, endSegment, repeatSegment } from '@/lib/debate/transitions';
 import { applySegmentMicPermissions } from '@/lib/debate/mic-control';
 import { getPool } from '@/lib/db/pool';
+import { activeWorkers } from '@/lib/transcription/registry';
+import { TranscriptionWorker } from '@/lib/transcription/worker';
 
 const bodySchema = z.object({
   action: z.enum(['start', 'end', 'repeat']),
@@ -89,6 +91,20 @@ export async function POST(
         }
       }
 
+      // ---- Phase 04-02: bootstrap transcription worker on first-segment start ----
+      if (!activeWorkers.has(debateId)) {
+        try {
+          const worker = new TranscriptionWorker(debateId, debateRow.livekit_room_name);
+          activeWorkers.set(debateId, worker);
+          worker.start().catch(err => {
+            console.error('[transcription] worker start failed:', err);
+            activeWorkers.delete(debateId);
+          });
+        } catch (workerErr) {
+          console.error('[transcription] worker bootstrap failed:', workerErr);
+        }
+      }
+
       return NextResponse.json({ segment });
     }
 
@@ -123,6 +139,13 @@ export async function POST(
           );
         } catch (stopErr) {
           console.error('[egress] stop failed:', stopErr);
+        }
+
+        // ---- Phase 04-02: stop transcription worker on debate completion ----
+        const transcriptionWorker = activeWorkers.get(debateId);
+        if (transcriptionWorker) {
+          transcriptionWorker.stop().catch(err => console.error('[transcription] worker stop failed:', err));
+          activeWorkers.delete(debateId);
         }
       }
 
