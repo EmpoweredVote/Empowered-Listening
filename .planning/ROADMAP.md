@@ -88,13 +88,13 @@ Plans:
   2. Transcript text appears in the observer's transcript panel within 1-3 seconds of being spoken
   3. Each transcript entry is attributed to the correct speaker, associated with the correct debate segment, stored with a `debate_time_mmss` value, and full-text indexed in Postgres
   4. After a debate completes, a moderator can edit transcript entries from the moderator UI; edited entries are flagged with `edited = true` and the editor's identity
-**Plans**: TBD
+**Plans**: 4 plans in 2 waves (04-01, 04-03 parallel in Wave 1; 04-02, 04-04 parallel in Wave 2)
 
 Plans:
-- [ ] 04-01: Backend transcription worker (LiveKit audio track subscription, Deepgram streaming API)
-- [ ] 04-02: Supabase Realtime channel for transcript updates, live transcript panel component
-- [ ] 04-03: Transcript storage (speaker attribution, segment chunking, debate_time_mmss, FTS index)
-- [ ] 04-04: Post-debate moderator transcript correction UI
+- [ ] 04-01-PLAN.md — Worker foundation: DEEPGRAM_API_KEY env, @livekit/rtc-node + @deepgram/sdk install, worker token role, computeDebateTimeMmss TDD
+- [ ] 04-02-PLAN.md — Worker core: DeepgramLiveConnection (per-speaker PCM streaming), TranscriptionWorker (room join), transcription start/stop/status API
+- [ ] 04-03-PLAN.md — Observer panel: DB migration (original_text + Realtime publication), GET transcript endpoint, useTranscriptSync hook, TranscriptPanel + TranscriptEntry components, wire into observer layout
+- [ ] 04-04-PLAN.md — Moderator editor: correct_transcript_entry SECURITY DEFINER RPC, correction API route, /moderator/[debateId]/transcript page, TranscriptEditor inline click-to-edit
 
 ### Phase 5: Notes
 **Goal**: Connected accounts can take timestamped notes during a live debate; speakers see their notes as a rebuttal checklist; all notes can be exported as PDF
