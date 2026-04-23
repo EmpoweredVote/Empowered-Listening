@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-04-19)
 
 **Core value:** Two speakers and a moderator can run a fair, accountable structured debate that any connected observer can watch live, with a permanent and searchable transcript produced automatically.
-**Current focus:** Phase 4 (Transcription) — 04-01 and 04-03 complete, ready for 04-02 (worker)
+**Current focus:** Phase 4 (Transcription) — 04-01, 04-02, 04-03 complete, ready for 04-04 (search/export)
 
 ## Current Position
 
 Phase: 4 of 6 (Transcription) — in progress
-Plan: 04-03 complete (2 of 4 plans in Phase 4 have summaries: 04-01, 04-03)
-Status: In progress (04-02, 04-04 remain)
-Last activity: 2026-04-23 — Completed 04-03-PLAN.md (observer transcript panel: migration, GET endpoint, hook, TranscriptPanel, layout wiring)
+Plan: 04-02 complete (3 of 4 plans in Phase 4 have summaries: 04-01, 04-02, 04-03)
+Status: In progress (04-04 remains)
+Last activity: 2026-04-23 — Completed 04-02-PLAN.md (transcription worker core: DeepgramLiveConnection, TranscriptionWorker, registry, API routes, lifecycle wiring)
 
-Progress: [████████████████░░░░] 80% (16/20 plans complete)
+Progress: [█████████████████░░░] 85% (17/20 plans complete)
 
 ## Performance Metrics
 
@@ -105,6 +105,10 @@ Recent decisions affecting current work:
   - [04-03]: Broadcast-ephemeral pattern: load DB snapshot via GET first, then subscribe — useTranscriptSync handles subscription only, not initial load
   - [04-03]: speakersMap and segmentsArray built inline in each layout from useDebateStore — no prop drilling through ObserverShell needed
   - [04-03]: Segment display name derived from LD_SEGMENTS lookup at module level — not stored in DB
+  - [04-02]: Deepgram SDK v5 API: DefaultDeepgramClient (not createClient); listen.v1 is a getter property; connect() is async returning V1Socket; sendMedia() not send(); close() not finish()
+  - [04-02]: V5 SDK boolean params require string literals 'true'/'false' for interim_results, smart_format, punctuate; filler_words passed via extra query param
+  - [04-02]: export const runtime = 'nodejs' required on routes importing @livekit/rtc-node native bindings
+  - [04-02]: RoomOptions requires dynacast: false alongside autoSubscribe: true for subscriber-only worker token
 
 ### Pending Todos
 
@@ -121,6 +125,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-23T14:11:11Z
-Stopped at: 04-01-PLAN.md complete; worker foundation (DEEPGRAM_API_KEY, worker token, computeDebateTimeMmss) delivered
-Resume file: None — proceed to 04-02 (transcription worker)
+Last session: 2026-04-23T14:30:54Z
+Stopped at: 04-02-PLAN.md complete; transcription worker core (DeepgramLiveConnection, TranscriptionWorker, registry, API routes, lifecycle wiring) delivered
+Resume file: None — proceed to 04-04 (transcript search and export)
