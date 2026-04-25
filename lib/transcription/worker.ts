@@ -48,6 +48,7 @@ export class TranscriptionWorker {
       (track: RemoteTrack, _pub: RemoteTrackPublication, participant: RemoteParticipant) => {
         if (track.kind !== TrackKind.KIND_AUDIO) return;
         const speakerId = speakerMap.get(participant.identity);
+        console.log(`[worker] TrackSubscribed: identity=${participant.identity} speakerId=${speakerId ?? 'NOT FOUND'} knownIdentities=${JSON.stringify([...speakerMap.keys()])}`);
         if (!speakerId) return;
         if (this.connections.has(participant.identity)) return;
 
