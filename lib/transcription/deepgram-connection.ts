@@ -5,7 +5,6 @@ import { getSupabaseAdmin } from '@/lib/supabase/admin';
 import { computeDebateTimeMmss } from './debate-time';
 
 const UNAVAILABLE_THRESHOLD = 0.10;
-const INAUDIBLE_THRESHOLD = 0.20;
 
 export class DeepgramLiveConnection {
   // Both assigned in start() via dynamic imports
@@ -74,14 +73,7 @@ export class DeepgramLiveConnection {
 
       if ((alt.confidence ?? 0) < UNAVAILABLE_THRESHOLD) return;
 
-      const text = (alt.words ?? [])
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .filter((w: any) => (w.confidence ?? 0) >= INAUDIBLE_THRESHOLD)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .map((w: any) => w.word ?? '')
-        .join(' ')
-        .trim();
-
+      const text = (alt.transcript ?? '').trim();
       if (!text) return;
       await this.onFinalTranscript(text, alt.confidence ?? 0);
     });
