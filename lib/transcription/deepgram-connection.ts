@@ -51,6 +51,12 @@ export class DeepgramLiveConnection {
       Authorization: `Token ${env.DEEPGRAM_API_KEY}`,
     });
 
+    // Wait for WebSocket to be fully open before resolving — prevents "Socket is not open" race
+    await new Promise<void>((resolve, reject) => {
+      socket.on('open', resolve);
+      socket.on('error', (err: Error) => reject(err));
+    });
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     socket.on('message', async (data: any) => {
       if (data.type !== 'Results') return;
@@ -80,8 +86,8 @@ export class DeepgramLiveConnection {
       if (!this.stopped) this.scheduleReconnect();
     });
 
-    socket.on('error', (err: Error) => {
-      console.error('[deepgram] connection error:', err);
+    socket.on('error', (err: Error & { status?: number }) => {
+      console.error(`[deepgram] connection error (status=${err.status ?? 'unknown'}):`, err.message);
       if (!this.stopped) this.scheduleReconnect();
     });
 
