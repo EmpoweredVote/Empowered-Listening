@@ -36,6 +36,10 @@ export class DeepgramLiveConnection {
 
   private async connectDeepgram(): Promise<void> {
     const { DefaultDeepgramClient } = await import('@deepgram/sdk');
+    // Node.js 22 exposes a global WebSocket that is incompatible with the Deepgram SDK's
+    // reconnecting wrapper. Force the SDK to use the `ws` package instead.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (globalThis as any).WebSocket = undefined;
     const client = new DefaultDeepgramClient({ apiKey: env.DEEPGRAM_API_KEY });
 
     const socket = await client.listen.v1.connect({
