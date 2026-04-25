@@ -92,6 +92,7 @@ export async function POST(
       }
 
       // ---- Phase 04-02: bootstrap transcription worker on first-segment start ----
+      console.log(`[transcription] bootstrap check debateId=${debateId} roomName=${debateRow?.livekit_room_name} alreadyActive=${activeWorkers.has(debateId)}`);
       if (!activeWorkers.has(debateId)) {
         try {
           const worker = new TranscriptionWorker(debateId, debateRow.livekit_room_name);
@@ -100,6 +101,7 @@ export async function POST(
             console.error('[transcription] worker start failed:', err);
             activeWorkers.delete(debateId);
           });
+          console.log(`[transcription] worker started for debateId=${debateId}`);
         } catch (workerErr) {
           console.error('[transcription] worker bootstrap failed:', workerErr);
         }

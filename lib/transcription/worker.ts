@@ -15,6 +15,7 @@ export class TranscriptionWorker {
   ) {}
 
   async start(): Promise<void> {
+    console.log(`[worker] start() called debateId=${this.debateId} roomName=${this.roomName}`);
     // Lazy-load the native binary only when a debate actually starts
     const { Room, RoomEvent, TrackKind } = await import('@livekit/rtc-node');
     this.room = new Room();
