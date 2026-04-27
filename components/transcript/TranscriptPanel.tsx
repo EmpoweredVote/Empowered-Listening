@@ -137,21 +137,35 @@ export function TranscriptPanel({ debateId, speakers, segments }: TranscriptPane
     .filter(s => s.actual_start !== null)
     .sort((a, b) => new Date(a.actual_start!).getTime() - new Date(b.actual_start!).getTime());
 
-  // Build ordered list of (segmentId | null, entry) pairs with segment headers
+  // Build ordered list with segment headers; merge consecutive same-speaker entries into one card
   type RenderItem =
     | { type: 'header'; segment: DebateSegment }
     | { type: 'entry'; entry: TranscriptEntryRow };
 
   const renderItems: RenderItem[] = [];
   let lastSegmentId: string | null = null;
+  let lastEntrySpeakerId: string | null = null;
 
   for (const entry of entries) {
     const seg = findSegmentForEntry(entry.spoken_at, sortedSegments);
     if (seg && seg.id !== lastSegmentId) {
       renderItems.push({ type: 'header', segment: seg });
       lastSegmentId = seg.id;
+      lastEntrySpeakerId = null;
     }
-    renderItems.push({ type: 'entry', entry });
+
+    if (lastEntrySpeakerId === entry.speaker_id) {
+      const lastItem = renderItems[renderItems.length - 1];
+      if (lastItem?.type === 'entry') {
+        renderItems[renderItems.length - 1] = {
+          type: 'entry',
+          entry: { ...lastItem.entry, text: lastItem.entry.text + ' ' + entry.text },
+        };
+      }
+    } else {
+      renderItems.push({ type: 'entry', entry });
+      lastEntrySpeakerId = entry.speaker_id;
+    }
   }
 
   const hasInterims = Object.keys(interims).length > 0;
