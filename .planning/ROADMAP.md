@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Foundation** - Schema, service accounts, Next.js scaffold, SSO auth, and desktop gate
 - [ ] **Phase 2: Speaker Room** - Full Lincoln-Douglas debate runs end-to-end with server-authoritative timers and mic control
 - [ ] **Phase 3: Observer Streaming** - Anonymous observers watch the live debate via HLS with segment timeline overlay
-- [ ] **Phase 4: Transcription** - Every spoken word is attributed, stored per segment, and visible in near-real-time
+- [x] **Phase 4: Transcription** - Every spoken word is attributed, stored per segment, and visible in near-real-time
 - [ ] **Phase 5: Notes** - Connected accounts take timestamped notes; speakers use rebuttal checklist view
 - [ ] **Phase 6: Voting and Badges** - Connected and Empowered accounts vote on Last Speaker, winner, and next topic; all writes gated by tier and badge checks
 
@@ -91,10 +91,10 @@ Plans:
 **Plans**: 4 plans in 2 waves (04-01, 04-03 parallel in Wave 1; 04-02, 04-04 parallel in Wave 2)
 
 Plans:
-- [ ] 04-01-PLAN.md — Worker foundation: DEEPGRAM_API_KEY env, @livekit/rtc-node + @deepgram/sdk install, worker token role, computeDebateTimeMmss TDD
-- [ ] 04-02-PLAN.md — Worker core: DeepgramLiveConnection (per-speaker PCM streaming), TranscriptionWorker (room join), transcription start/stop/status API
-- [ ] 04-03-PLAN.md — Observer panel: DB migration (original_text + Realtime publication), GET transcript endpoint, useTranscriptSync hook, TranscriptPanel + TranscriptEntry components, wire into observer layout
-- [ ] 04-04-PLAN.md — Moderator editor: correct_transcript_entry SECURITY DEFINER RPC, correction API route, /moderator/[debateId]/transcript page, TranscriptEditor inline click-to-edit
+- [x] 04-01-PLAN.md — Worker foundation: DEEPGRAM_API_KEY env, @livekit/rtc-node + @deepgram/sdk install, worker token role, computeDebateTimeMmss TDD
+- [x] 04-02-PLAN.md — Worker core: DeepgramLiveConnection (per-speaker PCM streaming), TranscriptionWorker (room join), transcription start/stop/status API
+- [x] 04-03-PLAN.md — Observer panel: DB migration (original_text + Realtime publication), GET transcript endpoint, useTranscriptSync hook, TranscriptPanel + TranscriptEntry components, wire into observer layout
+- [x] 04-04-PLAN.md — Moderator editor: correct_transcript_entry SECURITY DEFINER RPC, correction API route, /moderator/[debateId]/transcript page, TranscriptEditor inline click-to-edit
 
 ### Phase 5: Notes
 **Goal**: Connected accounts can take timestamped notes during a live debate; speakers see their notes as a rebuttal checklist; all notes can be exported as PDF
@@ -142,6 +142,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 1. Foundation | 4/4 | Complete | 2026-04-21 |
 | 2. Speaker Room | 0/5 | Not started | - |
 | 3. Observer Streaming | 5/5 | Functionally complete (03-01 Task 4 deferred — Mux Growth plan) | 2026-04-22 |
-| 4. Transcription | 0/4 | Not started | - |
+| 4. Transcription | 4/4 | Complete | 2026-04-27 |
 | 5. Notes | 0/4 | Not started | - |
 | 6. Voting and Badges | 0/5 | Not started | - |

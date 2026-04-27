@@ -34,10 +34,10 @@ Scope: Architecture doc Phases 1–5 (Speaker MVP → Observer Streaming → Tra
 
 ### Transcription
 
-- [ ] **TRANS-01**: Backend worker subscribes to LiveKit audio tracks and streams audio to Deepgram real-time API
-- [ ] **TRANS-02**: Live transcript panel updates in near-real-time (target: 1–3s delay) via Supabase Realtime channel
-- [ ] **TRANS-03**: Transcript entries attributed to correct speaker, chunked by debate segment, stored with debate_time_mmss, and full-text indexed in Postgres
-- [ ] **TRANS-04**: Moderators can correct transcript errors post-debate; corrections flagged with `edited = true` and editor identity
+- [x] **TRANS-01**: Backend worker subscribes to LiveKit audio tracks and streams audio to Deepgram real-time API
+- [x] **TRANS-02**: Live transcript panel updates in near-real-time (target: 1–3s delay) via Supabase Realtime channel
+- [x] **TRANS-03**: Transcript entries attributed to correct speaker, chunked by debate segment, stored with debate_time_mmss, and full-text indexed in Postgres
+- [x] **TRANS-04**: Moderators can correct transcript errors post-debate; corrections flagged with `edited = true` and editor identity
 
 ### Notes
 
@@ -130,10 +130,10 @@ Deferred to future milestone (architecture doc Phases 6–10).
 | OBS-04 | Phase 3 | Complete |
 | UX-01 | Phase 3 | Complete |
 | UX-02 | Phase 3 | Complete |
-| TRANS-01 | Phase 4 | Pending |
-| TRANS-02 | Phase 4 | Pending |
-| TRANS-03 | Phase 4 | Pending |
-| TRANS-04 | Phase 4 | Pending |
+| TRANS-01 | Phase 4 | Complete |
+| TRANS-02 | Phase 4 | Complete |
+| TRANS-03 | Phase 4 | Complete |
+| TRANS-04 | Phase 4 | Complete |
 | NOTES-01 | Phase 5 | Pending |
 | NOTES-02 | Phase 5 | Pending |
 | NOTES-03 | Phase 5 | Pending |
@@ -152,4 +152,4 @@ Deferred to future milestone (architecture doc Phases 6–10).
 
 ---
 *Requirements defined: 2026-04-19*
-*Last updated: 2026-04-22 — Phase 3 requirements marked Complete*
+*Last updated: 2026-04-27 — Phase 4 requirements marked Complete*
