@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-04-19)
 
 ## Current Position
 
-Phase: 4 of 6 (Transcription) — complete
-Plan: 04-04 complete (all 4 plans in Phase 4 have summaries: 04-01, 04-02, 04-03, 04-04)
-Status: Phase 4 complete — ready for Phase 5
-Last activity: 2026-04-27 — Completed 04-04-PLAN.md (moderator transcript editor: SECURITY DEFINER RPC, correction route, TranscriptEditor, live-testing bug fixes)
+Phase: 5 of 6 (Notes) — in progress
+Plan: 05-01 complete (1 of 5 plans in Phase 5 delivered)
+Status: Phase 5 in progress — 05-01 foundation complete; 05-02 through 05-05 ready to execute
+Last activity: 2026-04-27 — Completed 05-01-PLAN.md (notes schema migration, always-private alignment, dnd-kit + react-pdf install)
 
-Progress: [██████████████████░░] 90% (18/20 plans complete)
+Progress: [███████████████████░] 95% (19/20 plans complete)
 
 ## Performance Metrics
 
@@ -113,6 +113,8 @@ Recent decisions affecting current work:
   - [04-04]: original_text set only on first correction via COALESCE(original_text, text) — preserves Deepgram-generated text through repeated human edits
   - [04-04]: Word-level confidence filtering removed from deepgram-connection.ts — full alt.transcript string used for final entries; filtering caused silent truncation
   - [04-04]: Consecutive same-speaker entries merged in TranscriptPanel display layer — DB rows kept intact for auditability via original_text
+  - [05-01]: DROP POLICY must precede DROP COLUMN when policy references that column — Postgres error 2BP01 enforces this ordering; migration repaired and re-applied
+  - [05-01]: No next.config.ts change for @react-pdf/renderer — already on Next.js serverExternalPackages allowlist; manual addition would be redundant
 
 ### Pending Todos
 
@@ -130,5 +132,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-04-27
-Stopped at: 04-04-PLAN.md complete; Phase 4 Transcription fully delivered (RPC, correction endpoint, moderator editor page, live-testing fixes applied)
-Resume file: None — proceed to Phase 5 (Notes)
+Stopped at: 05-01-PLAN.md complete; Phase 5 Notes foundation delivered (schema migration, packages installed)
+Resume file: None — proceed to 05-02 (notes API) and 05-03 (PDF export) — can run in parallel
