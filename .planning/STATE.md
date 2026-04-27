@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-04-19)
 
 **Core value:** Two speakers and a moderator can run a fair, accountable structured debate that any connected observer can watch live, with a permanent and searchable transcript produced automatically.
-**Current focus:** Phase 4 (Transcription) — 04-01, 04-02, 04-03 complete, ready for 04-04 (search/export)
+**Current focus:** Phase 5 (Notes) — Phase 4 Transcription complete; all four plans delivered
 
 ## Current Position
 
-Phase: 4 of 6 (Transcription) — in progress
-Plan: 04-02 complete (3 of 4 plans in Phase 4 have summaries: 04-01, 04-02, 04-03)
-Status: In progress (04-04 remains)
-Last activity: 2026-04-23 — Completed 04-02-PLAN.md (transcription worker core: DeepgramLiveConnection, TranscriptionWorker, registry, API routes, lifecycle wiring)
+Phase: 4 of 6 (Transcription) — complete
+Plan: 04-04 complete (all 4 plans in Phase 4 have summaries: 04-01, 04-02, 04-03, 04-04)
+Status: Phase 4 complete — ready for Phase 5
+Last activity: 2026-04-27 — Completed 04-04-PLAN.md (moderator transcript editor: SECURITY DEFINER RPC, correction route, TranscriptEditor, live-testing bug fixes)
 
-Progress: [█████████████████░░░] 85% (17/20 plans complete)
+Progress: [██████████████████░░] 90% (18/20 plans complete)
 
 ## Performance Metrics
 
@@ -109,6 +109,10 @@ Recent decisions affecting current work:
   - [04-02]: V5 SDK boolean params require string literals 'true'/'false' for interim_results, smart_format, punctuate; filler_words passed via extra query param
   - [04-02]: export const runtime = 'nodejs' required on routes importing @livekit/rtc-node native bindings
   - [04-02]: RoomOptions requires dynacast: false alongside autoSubscribe: true for subscriber-only worker token
+  - [04-04]: SECURITY DEFINER RPC is correct write path into listening schema — PostgREST does not expose non-public schemas; pool.query bypasses RLS
+  - [04-04]: original_text set only on first correction via COALESCE(original_text, text) — preserves Deepgram-generated text through repeated human edits
+  - [04-04]: Word-level confidence filtering removed from deepgram-connection.ts — full alt.transcript string used for final entries; filtering caused silent truncation
+  - [04-04]: Consecutive same-speaker entries merged in TranscriptPanel display layer — DB rows kept intact for auditability via original_text
 
 ### Pending Todos
 
@@ -125,6 +129,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-23T14:30:54Z
-Stopped at: 04-02-PLAN.md complete; transcription worker core (DeepgramLiveConnection, TranscriptionWorker, registry, API routes, lifecycle wiring) delivered
-Resume file: None — proceed to 04-04 (transcript search and export)
+Last session: 2026-04-27
+Stopped at: 04-04-PLAN.md complete; Phase 4 Transcription fully delivered (RPC, correction endpoint, moderator editor page, live-testing fixes applied)
+Resume file: None — proceed to Phase 5 (Notes)
