@@ -15,7 +15,6 @@ export class TranscriptionWorker {
   ) {}
 
   async start(): Promise<void> {
-    console.log(`[worker] start() called debateId=${this.debateId} roomName=${this.roomName}`);
     // Lazy-load the native binary only when a debate actually starts
     const { Room, RoomEvent, TrackKind } = await import('@livekit/rtc-node');
     this.room = new Room();
@@ -49,7 +48,6 @@ export class TranscriptionWorker {
       (track: RemoteTrack, _pub: RemoteTrackPublication, participant: RemoteParticipant) => {
         if (track.kind !== TrackKind.KIND_AUDIO) return;
         const speakerId = speakerMap.get(participant.identity);
-        console.log(`[worker] TrackSubscribed: identity=${participant.identity} speakerId=${speakerId ?? 'NOT FOUND'} knownIdentities=${JSON.stringify([...speakerMap.keys()])}`);
         if (!speakerId) return;
         if (this.connections.has(participant.identity)) return;
 
