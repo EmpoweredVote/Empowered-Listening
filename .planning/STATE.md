@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-04-19)
 ## Current Position
 
 Phase: 5 of 6 (Notes) — in progress
-Plan: 05-02 complete (2 of 5 plans in Phase 5 delivered)
-Status: Phase 5 in progress — 05-01 and 05-02 complete; 05-03 through 05-05 remain
-Last activity: 2026-04-28 — Completed 05-02-PLAN.md (notes CRUD API + reorder + Zustand store)
+Plan: 05-03 complete (3 of 5 plans in Phase 5 delivered)
+Status: Phase 5 in progress — 05-01, 05-02, 05-03 complete; 05-04 and 05-05 remain
+Last activity: 2026-04-27 — Completed 05-03-PLAN.md (PDF export: alignNotesToTranscript + DebateNotesPdf + export route)
 
 Progress: [████████████████████░░░░░] (notes api complete; observer UI, speaker UI, PDF export remain)
 
@@ -119,6 +119,9 @@ Recent decisions affecting current work:
   - [05-02]: 404 returned for both "not found" and "not yours" on PUT/DELETE — no ownership info leaked
   - [05-02]: Reorder uses ANY($3::uuid[]) ownership count check before opening transaction — fail fast before acquiring pool connection
   - [05-02]: checkedIds in notesStore is ephemeral client state (Record<string, boolean>); no is_checked field on NoteRow, never persisted to DB
+  - [05-03]: renderToBuffer type cast (as unknown as ReactElement<DocumentProps>) bridges DebateNotesPdf component props to react-pdf's narrower DocumentProps constraint — runtime correct, TS-only workaround
+  - [05-03]: alignNotesToTranscript sorts transcript copy once, binary-searches per note — preserves original indices via originalIndex field; inputs not mutated
+  - [05-03]: Separate speaker-by-id query in export route resolves transcript_entries.speaker_id (UUID) to role/display_name; parallel fetch kept clean
 
 ### Pending Todos
 
@@ -135,6 +138,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-28
-Stopped at: 05-02-PLAN.md complete; notes CRUD API + reorder endpoint + Zustand store delivered
-Resume file: None — proceed to 05-04 (observer notes UI) and 05-05 (speaker rebuttal checklist)
+Last session: 2026-04-27
+Stopped at: 05-03-PLAN.md complete; PDF export subsystem delivered (alignment function, DebateNotesPdf, export route)
+Resume file: None — proceed to 05-04 (observer notes UI / NotesSidebar) and 05-05 (speaker rebuttal checklist)
