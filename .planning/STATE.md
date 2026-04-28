@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-04-19)
 ## Current Position
 
 Phase: 5 of 6 (Notes) — in progress
-Plan: 05-01 complete (1 of 5 plans in Phase 5 delivered)
-Status: Phase 5 in progress — 05-01 foundation complete; 05-02 through 05-05 ready to execute
-Last activity: 2026-04-27 — Completed 05-01-PLAN.md (notes schema migration, always-private alignment, dnd-kit + react-pdf install)
+Plan: 05-02 complete (2 of 5 plans in Phase 5 delivered)
+Status: Phase 5 in progress — 05-01 and 05-02 complete; 05-03 through 05-05 remain
+Last activity: 2026-04-28 — Completed 05-02-PLAN.md (notes CRUD API + reorder + Zustand store)
 
-Progress: [███████████████████░] 95% (19/20 plans complete)
+Progress: [████████████████████░░░░░] (notes api complete; observer UI, speaker UI, PDF export remain)
 
 ## Performance Metrics
 
@@ -115,6 +115,10 @@ Recent decisions affecting current work:
   - [04-04]: Consecutive same-speaker entries merged in TranscriptPanel display layer — DB rows kept intact for auditability via original_text
   - [05-01]: DROP POLICY must precede DROP COLUMN when policy references that column — Postgres error 2BP01 enforces this ordering; migration repaired and re-applied
   - [05-01]: No next.config.ts change for @react-pdf/renderer — already on Next.js serverExternalPackages allowlist; manual addition would be redundant
+  - [05-02]: requireConnectedTier(bearer) + mapTierError(err) is the standard pattern for Connected-tier gates; DELETE has no tier check (user can always remove own data)
+  - [05-02]: 404 returned for both "not found" and "not yours" on PUT/DELETE — no ownership info leaked
+  - [05-02]: Reorder uses ANY($3::uuid[]) ownership count check before opening transaction — fail fast before acquiring pool connection
+  - [05-02]: checkedIds in notesStore is ephemeral client state (Record<string, boolean>); no is_checked field on NoteRow, never persisted to DB
 
 ### Pending Todos
 
@@ -131,6 +135,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-27
-Stopped at: 05-01-PLAN.md complete; Phase 5 Notes foundation delivered (schema migration, packages installed)
-Resume file: None — proceed to 05-02 (notes API) and 05-03 (PDF export) — can run in parallel
+Last session: 2026-04-28
+Stopped at: 05-02-PLAN.md complete; notes CRUD API + reorder endpoint + Zustand store delivered
+Resume file: None — proceed to 05-04 (observer notes UI) and 05-05 (speaker rebuttal checklist)
