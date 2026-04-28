@@ -4,6 +4,7 @@ import HlsPlayer from './HlsPlayer';
 import { SegmentTimeline } from './SegmentTimeline';
 import { MobileTabs, type MobileTab } from './MobileTabs';
 import { TranscriptPanel } from '@/components/transcript/TranscriptPanel';
+import { NotesPanel } from '@/components/notes/NotesPanel';
 import { useDebateStore } from '@/store/debateStore';
 import { LD_SEGMENTS } from '@/lib/debate/segments';
 
@@ -85,8 +86,8 @@ export function MobileLayout({ debateId, hlsUrl, status, topic }: MobileLayoutPr
       id: 'notes',
       label: 'Notes',
       content: (
-        <div className="p-4 text-sm text-slate-400">
-          Notes — available in a future update (Phase 5).
+        <div className="h-full overflow-hidden">
+          <NotesPanel debateId={debateId} />
         </div>
       ),
     },

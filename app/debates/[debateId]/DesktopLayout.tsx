@@ -5,6 +5,7 @@ import { Group, Panel, Separator, useDefaultLayout } from 'react-resizable-panel
 import HlsPlayer from './HlsPlayer';
 import { SegmentTimeline } from './SegmentTimeline';
 import { TranscriptPanel } from '@/components/transcript/TranscriptPanel';
+import { NotesPanel } from '@/components/notes/NotesPanel';
 import { useDebateStore } from '@/store/debateStore';
 import { LD_SEGMENTS } from '@/lib/debate/segments';
 
@@ -90,6 +91,7 @@ export default function DesktopLayout({ debateId, hlsUrl, status, topic }: Deskt
           break;
         case 'n':
         case 'N':
+          window.dispatchEvent(new CustomEvent('notes:focus-input'));
           notesPanelRef.current?.focus();
           break;
         case 'f':
@@ -166,16 +168,16 @@ export default function DesktopLayout({ debateId, hlsUrl, status, topic }: Deskt
 
         <Separator className="w-1 cursor-col-resize bg-slate-800 hover:bg-blue-600 transition-colors" />
 
-        {/* Notes panel — Phase 5 placeholder */}
+        {/* Notes panel */}
         <Panel defaultSize={15} minSize={10}>
           <div
             ref={notesPanelRef}
             tabIndex={0}
             role="region"
             aria-label="Notes panel"
-            className="h-full overflow-y-auto p-4 text-sm text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="h-full overflow-hidden focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            Notes &mdash; available in a future update (Phase 5).
+            <NotesPanel debateId={debateId} />
           </div>
         </Panel>
       </Group>
