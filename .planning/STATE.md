@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-04-19)
 ## Current Position
 
 Phase: 5 of 6 (Notes) — in progress
-Plan: 05-03 complete (3 of 5 plans in Phase 5 delivered)
-Status: Phase 5 in progress — 05-01, 05-02, 05-03 complete; 05-04 and 05-05 remain
-Last activity: 2026-04-27 — Completed 05-03-PLAN.md (PDF export: alignNotesToTranscript + DebateNotesPdf + export route)
+Plan: 05-04 complete (4 of 5 plans in Phase 5 delivered)
+Status: Phase 5 in progress — 05-01, 05-02, 05-03, 05-04 complete; 05-05 remains
+Last activity: 2026-04-27 — Completed 05-04-PLAN.md (NotesPanel + NoteInput + NoteItem + useUserRole wired into layouts)
 
-Progress: [████████████████████░░░░░] (notes api complete; observer UI, speaker UI, PDF export remain)
+Progress: [████████████████████████░] (observer notes UI complete; speaker rebuttal checklist remains)
 
 ## Performance Metrics
 
@@ -122,6 +122,11 @@ Recent decisions affecting current work:
   - [05-03]: renderToBuffer type cast (as unknown as ReactElement<DocumentProps>) bridges DebateNotesPdf component props to react-pdf's narrower DocumentProps constraint — runtime correct, TS-only workaround
   - [05-03]: alignNotesToTranscript sorts transcript copy once, binary-searches per note — preserves original indices via originalIndex field; inputs not mutated
   - [05-03]: Separate speaker-by-id query in export route resolves transcript_entries.speaker_id (UUID) to role/display_name; parallel fetch kept clean
+  - [05-04]: Custom event 'notes:focus-input' from DesktopLayout's N handler → NotesPanel opens input — decouples without prop drilling through ObserverShell
+  - [05-04]: useUserRole fetches tier inline (not via SessionProvider) to keep SessionProvider lightweight; brief null tier is acceptable
+  - [05-04]: Export PDF via fetch → blob → object URL → anchor click (not plain <a href>) because route requires Authorization header
+  - [05-04]: isAnonymous = !token && !loading (not just !token) — avoids flash of upgrade message during session load
+  - [05-04]: NoteInput uses getState() (not reactive subscription) to read active segment at save time — avoids re-render churn
 
 ### Pending Todos
 
@@ -139,5 +144,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-04-27
-Stopped at: 05-03-PLAN.md complete; PDF export subsystem delivered (alignment function, DebateNotesPdf, export route)
-Resume file: None — proceed to 05-04 (observer notes UI / NotesSidebar) and 05-05 (speaker rebuttal checklist)
+Stopped at: 05-04-PLAN.md complete; observer notes UI delivered (useUserRole, NoteInput, NoteItem, NotesPanel wired into both layouts)
+Resume file: None — proceed to 05-05 (speaker rebuttal checklist)
