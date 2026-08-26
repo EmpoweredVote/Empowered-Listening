@@ -2,9 +2,12 @@
 node_modules/
 
 # Environment variables (secrets — never commit)
+# Covers bare `.env` plus every variant, including suffixed ones
+# like .env.bak and .env.save that exact-match rules miss.
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
+!.env.*.example
 .dev.vars
 
 # Supabase temp files
@@ -28,3 +31,15 @@ Thumbs.db
 # - .dev.vars.example
 # - supabase/config.toml
 # - supabase/migrations/*.sql
+
+# Editor/tooling backups. A `.env.bak` holding live credentials sat
+# untracked in ev-accounts on 2026-07-26 and a single `git add -A`
+# would have published it.
+*.bak
+*.backup
+*.orig
+*~
+
+# Playwright MCP page captures. 556 of these were committed to
+# ev-accounts and held live credentials.
+.playwright-mcp/
