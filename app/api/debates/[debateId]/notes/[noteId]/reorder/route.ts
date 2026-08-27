@@ -39,9 +39,7 @@ export async function PUT(
 
   let userId: string;
   try {
-    const payload = await verifyToken(bearer);
-    userId = (payload.sub as string) ?? null;
-    if (!userId) throw new Error('No sub');
+    ({ userId } = await verifyToken(bearer));
   } catch {
     return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
   }

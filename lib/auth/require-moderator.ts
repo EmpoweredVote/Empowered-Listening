@@ -11,12 +11,12 @@ export class ModeratorGateError extends Error {
 
 export async function requireModerator(token: string): Promise<string> {
   if (!token) throw new ModeratorGateError(401, 'Missing token');
-  const payload = await verifyToken(token);
+  const { payload, userId } = await verifyToken(token);
   const roles = extractRoles(payload);
   if (!roles.includes('listening_moderator')) {
     throw new ModeratorGateError(403, 'Missing listening_moderator role');
   }
-  return payload.sub as string;
+  return userId;
 }
 
 function extractRoles(payload: Record<string, unknown>): string[] {
