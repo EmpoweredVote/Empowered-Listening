@@ -19,14 +19,14 @@ const NOTE_COLUMNS = `
   source_transcript_entry_id
 `;
 
-/** Extract and verify the bearer token; return userId (sub) or null. */
+/** Extract and verify the bearer token; return the internal userId or null. */
 async function getUserIdFromRequest(req: NextRequest): Promise<string | null> {
   const authHeader = req.headers.get('authorization');
   const bearer = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
   if (!bearer) return null;
   try {
-    const payload = await verifyToken(bearer);
-    return (payload.sub as string) ?? null;
+    const { userId } = await verifyToken(bearer);
+    return userId;
   } catch {
     return null;
   }
@@ -62,9 +62,7 @@ export async function PUT(
 
   let userId: string;
   try {
-    const payload = await verifyToken(bearer);
-    userId = (payload.sub as string) ?? null;
-    if (!userId) throw new Error('No sub');
+    ({ userId } = await verifyToken(bearer));
   } catch {
     return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
   }

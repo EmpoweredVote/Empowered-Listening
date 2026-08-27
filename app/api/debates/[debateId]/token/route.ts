@@ -21,8 +21,7 @@ export async function POST(
 
   let userId: string;
   try {
-    const payload = await verifyToken(bearer);
-    userId = payload.sub as string;
+    ({ userId } = await verifyToken(bearer));
   } catch {
     return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
   }

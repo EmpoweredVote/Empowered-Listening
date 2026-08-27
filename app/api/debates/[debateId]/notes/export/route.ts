@@ -57,10 +57,7 @@ export async function GET(
   // 2. Verify token → userId
   let userId: string;
   try {
-    const payload = await verifyToken(bearer);
-    const sub = payload.sub as string | undefined;
-    if (!sub) throw new Error('No sub claim');
-    userId = sub;
+    ({ userId } = await verifyToken(bearer));
   } catch {
     return new Response('Invalid token', { status: 401 });
   }

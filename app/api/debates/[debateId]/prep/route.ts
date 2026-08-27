@@ -20,7 +20,7 @@ export async function POST(
   const bearer = req.headers.get('authorization')?.replace(/^Bearer /, '') ?? null;
   if (!bearer) return NextResponse.json({ error: 'Missing token' }, { status: 401 });
   let callerUserId: string;
-  try { callerUserId = (await verifyToken(bearer)).sub as string; }
+  try { callerUserId = (await verifyToken(bearer)).userId; }
   catch { return NextResponse.json({ error: 'Invalid token' }, { status: 401 }); }
 
   const parsed = bodySchema.safeParse(await req.json().catch(() => null));
