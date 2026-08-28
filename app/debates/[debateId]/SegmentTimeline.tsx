@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useDebateStore } from '@/store/debateStore';
+import { useShallow } from 'zustand/react/shallow';
 import { LD_SEGMENTS, getSegmentBySequence, type LDSegmentType } from '@/lib/debate/segments';
 
 // Map segment type to abbreviation from the canonical LD_SEGMENTS list
@@ -31,8 +32,13 @@ interface SegmentTimelineProps {
  */
 export function SegmentTimeline({ className = '', variant = 'desktop' }: SegmentTimelineProps) {
   // Subscribe to store slices — re-renders when these change via Realtime
-  const segments = useDebateStore(s =>
-    Object.values(s.segments).sort((a, b) => a.sequence_order - b.sequence_order),
+  // useShallow: this selector builds a NEW array each call. Under zustand 5
+  // (which delegates to React's useSyncExternalStore) an unstable reference
+  // infinite-loops with "getSnapshot should be cached"; zustand 4 tolerated it.
+  const segments = useDebateStore(
+    useShallow(s =>
+      Object.values(s.segments).sort((a, b) => a.sequence_order - b.sequence_order),
+    ),
   );
   const speakers = useDebateStore(s => s.speakers);
 
