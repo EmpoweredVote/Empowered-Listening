@@ -20,7 +20,7 @@
     "@livekit/components-styles": "^1.2.0",
     "@livekit/rtc-node": "^0.13.34",
     "@mux/mux-node": "^14.0.1",
-    "@react-pdf/renderer": "^4.7.0",
+    "@react-pdf/renderer": "^4.8.1",
     "@supabase/supabase-js": "^2.112.4",
     "hls.js": "^1.7.1",
     "jose": "^6.2.10",
