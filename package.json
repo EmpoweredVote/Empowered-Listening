@@ -21,7 +21,7 @@
     "@livekit/rtc-node": "^0.13.34",
     "@mux/mux-node": "^14.0.1",
     "@react-pdf/renderer": "^4.7.0",
-    "@supabase/supabase-js": "^2.112.3",
+    "@supabase/supabase-js": "^2.112.4",
     "hls.js": "^1.7.1",
     "jose": "^6.2.10",
     "livekit-client": "^2.18.4",
