@@ -13,7 +13,7 @@ Empowered Listening delivers structured civic debate infrastructure in six phase
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation** - Schema, service accounts, Next.js scaffold, SSO auth, and desktop gate
-- [ ] **Phase 2: Speaker Room** - Full Lincoln-Douglas debate runs end-to-end with server-authoritative timers and mic control
+- [x] **Phase 2: Speaker Room** - Full Lincoln-Douglas debate runs end-to-end with server-authoritative timers and mic control
 - [ ] **Phase 3: Observer Streaming** - Anonymous observers watch the live debate via HLS with segment timeline overlay
 - [x] **Phase 4: Transcription** - Every spoken word is attributed, stored per segment, and visible in near-real-time
 - [ ] **Phase 5: Notes** - Connected accounts take timestamped notes; speakers use rebuttal checklist view
@@ -50,14 +50,18 @@ Plans:
   4. The segment timer shows the correct 4-state visual (normal / warning / red_mode / expired) across all connected clients with under 200ms variance
   5. Each speaker's 60-second bonus pool activates automatically when allocated time expires; the mic is auto-muted when the pool reaches zero
   6. LiveKit track permissions enforce that only the active speaker's mic is unmuted each segment (both open during CX); timer color states render identically across all surfaces
-**Plans**: TBD
+**Plans**: 7 plans in 4 waves (02-01, 02-02 in Wave 1; 02-03, 02-04 in Wave 2; 02-05, 02-06 in Wave 3; 02-07 in Wave 4)
 
 Plans:
-- [ ] 02-01: Debate creation, LiveKit room and JWT minting, moderator UI scaffold
-- [ ] 02-02: Speaker room join flow, LiveKit participant connection
-- [ ] 02-03: Lincoln-Douglas segment sequence, server-authoritative timer edge function
-- [ ] 02-04: Bonus time pool logic, LiveKit track permission enforcement, auto-mute
-- [ ] 02-05: Timer visual state machine, UX-04 color/icon consistency across surfaces
+- [x] 02-01-PLAN.md — Segment/prep/pause columns, Realtime publication, participant-visibility RLS, 6 SECURITY DEFINER transition RPCs
+- [x] 02-02-PLAN.md — Primitives: pool.query singleton, mintToken, setMicPermission, LD_SEGMENTS canonical 7-segment schedule
+- [x] 02-03-PLAN.md — Moderator gate, atomic createDebate transaction (1 debate + 3 speakers + 7 segments), POST /api/debates, share page
+- [x] 02-04-PLAN.md — Token endpoint with atomic slot claim, /join/speaker + /join/moderator, DebateRoom/ParticipantGrid/SpeakerTile/WaitingRoom
+- [x] 02-05-PLAN.md — Client state layer: Supabase browser client, Zustand debateStore, useDebateSync, useMicAutoPublish
+- [x] 02-06-PLAN.md — Server debate engine: RPC wrappers, applySegmentMicPermissions, handleBonusExhaustion, segment + prep API routes
+- [x] 02-07-PLAN.md — SegmentTimer 4-state machine, PrepTimeDisplay, BonusTimeDisplay, ModeratorPanel, SpeakerView, useSegmentAutoExpire
+
+**E2E verification (2026-04-22)**: 10 of 11 steps passed; all 6 success criteria verified.  Step 9 (out-of-order segment DB guard) skipped — logic exists in the `start_segment` RPC but was not live-tested; not blocking for phase exit.
 
 ### Phase 3: Observer Streaming
 **Goal**: Anonymous observers can watch the live debate via HLS with an honest delay indicator and a segment timeline overlay
@@ -140,7 +144,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 4/4 | Complete | 2026-04-21 |
-| 2. Speaker Room | 0/5 | Not started | - |
+| 2. Speaker Room | 7/7 | Complete | 2026-04-22 |
 | 3. Observer Streaming | 5/5 | Functionally complete (03-01 Task 4 deferred — Mux Growth plan) | 2026-04-22 |
 | 4. Transcription | 4/4 | Complete | 2026-04-27 |
 | 5. Notes | 0/4 | Not started | - |
