@@ -45,6 +45,7 @@ Recent decisions affecting current work:
 - [Init]: Schema name is `listening` (onboarding doc 2026-04-19 is authoritative over Feb architecture doc)
 - [Init]: All writes to `listening` schema use pool.query() or SECURITY DEFINER RPCs — PostgREST does not expose non-public schemas
 - [Init]: SSO only via accounts.empowered.vote; JWT verified ES256 via JWKS; never set SUPABASE_JWT_SECRET
+- [2026-08-27 / PR #18]: verifyToken accepts two issuers (ev-accounts decision 0002) — Supabase ES256 (aud 'authenticated', userId from sub) and WorkOS AuthKit RS256 (no aud claim, requires role='authenticated', userId from external_id and NEVER the WorkOS sub).  Unset WORKOS_CLIENT_ID disables the WorkOS branch.  WORKOS_ISSUER and WORKOS_JWKS_URL are optional overrides read straight from process.env; they are not in the lib/env.ts Zod schema, so a typo fails at verify time rather than at boot
 - [Init]: Speaker/moderator UI is desktop-only in v1; mobile attempts get clean rejection message
 - [01-01]: FK references use auth.users(id) per architecture doc v3 (onboarding doc example uses public.users — architecture doc wins for v1)
 - [01-01]: fallacy_flags and summary_checks excluded from v1 foundation — deferred to Phase 7/8 feature implementation
@@ -53,7 +54,7 @@ Recent decisions affecting current work:
 - [Arch]: Switched from Cloudflare Workers/Stream/R2 to Render/Mux/S3 — empowered.vote DNS is on AWS/GoDaddy, incompatible with Cloudflare Workers custom domains
 - [01-02]: Switched from Cloudflare Stream/R2/Workers to Mux/S3/Render — empowered.vote DNS on AWS/GoDaddy is incompatible with Cloudflare Workers custom domains
   - [01-03]: EV-UI fallback tokens used directly in tailwind.config.ts — @empoweredvote/ev-ui preset not imported
-  - [01-04]: jose createRemoteJWKSet with algorithms: ['ES256'] enforced — prevents algorithm confusion attacks
+  - [01-04]: jose createRemoteJWKSet with algorithms: ['ES256'] enforced — prevents algorithm confusion attacks (still true per branch after decision 0002: the Supabase branch pins ES256 and the WorkOS branch pins RS256; the unverified decodeJwt is used only to pick a branch, and each branch re-checks `iss` strictly)
   - [01-04]: Desktop gate passes x-mobile-gate: 1 header (not redirect) — inline gate on same page per decision
   - [01-04]: assertBypassSafe() called at layout module level — runs at startup, not per-request
   - [01-04]: SessionProvider uses localStorage (ev_token) + cookie-based silent renewal via api.empowered.vote

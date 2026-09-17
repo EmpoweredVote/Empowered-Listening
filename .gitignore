@@ -17,6 +17,10 @@ supabase/.temp/
 .next/
 out/
 dist/
+*.tsbuildinfo
+
+# Local scratch files
+write-verify.js
 
 # OS
 .DS_Store
