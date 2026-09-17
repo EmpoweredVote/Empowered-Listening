@@ -40,7 +40,7 @@ Two speakers and a moderator can run a fair, accountable structured debate that 
 - **Account tiers**: Inform (no record) / Connected (`connect.connected_profiles`) / Empowered (`empower.empowered_profiles`).  Tier = presence of child record, never a status flag.  Always check `account_standing` before any civic write — suspended users retain valid JWTs.
 - **PostgREST limitation**: PostgREST only exposes public schema.  All writes to the `listening` schema use `pool.query()` or SECURITY DEFINER RPCs.  Edge functions use the Postgres client directly.
 - **Gems and XP**: Listening awards blue gems (Connect-pillar currency) and XP via server-to-server calls to the central Accounts API (`/api/gems/award`, `/api/xp/award`).  No local ledger tables.
-- **JWT verification**: ES256 asymmetric via JWKS.  Never set `SUPABASE_JWT_SECRET`.
+- **JWT verification**: two issuers are accepted during the Supabase Auth to WorkOS AuthKit migration (ev-accounts decision 0002).  Supabase (legacy): ES256, issuer `https://kxsdzaojfaibhuzmclfq.supabase.co/auth/v1`, audience `authenticated`, user id from `sub`.  WorkOS AuthKit: RS256, no audience check because WorkOS access tokens carry no `aud`, the dashboard JWT template must set `role = 'authenticated'`, and the user id comes from `external_id` — never the WorkOS `sub`.  Each branch pins its own algorithm, so algorithm confusion is still blocked.  `verifyToken` returns `{ payload, userId }`; always take the id from `userId`, never read `sub` directly.  With no `WORKOS_CLIENT_ID` set the WorkOS branch is disabled and WorkOS tokens are rejected.  Never set `SUPABASE_JWT_SECRET`.
 - **Third-party services**: All starting from scratch — LiveKit Cloud, Cloudflare Stream, Cloudflare R2, Deepgram accounts must be created as part of the build.
 - **Pilot context**: Bloomington, Indiana (Monroe County).  IU students are the expected early adopter cohort.  Manually curated debate content for pilot.
 - **Memory over moderation**: Debates are civic record, retained indefinitely.
@@ -48,7 +48,7 @@ Two speakers and a moderator can run a fair, accountable structured debate that 
 
 ## Constraints
 
-- **Auth**: SSO only via `accounts.empowered.vote` — no building custom auth
+- **Auth**: SSO only via `accounts.empowered.vote` — no building custom auth.  Token verification accepts both the legacy Supabase issuer and WorkOS AuthKit (decision 0002); do not drop the Supabase branch until ev-accounts finishes the migration
 - **Database**: Shared EV Supabase instance (`kxsdzaojfaibhuzmclfq`), new `listening` schema — no touching `public`, `connect`, `empower`, or `inform` schemas
 - **No closed SDKs**: No Google Meet, Zoom, or similar — full control over UI and pipeline required
 - **Speaker/moderator UI**: Desktop-only in v1 — mobile attempts rejected with clean guidance
@@ -70,7 +70,8 @@ Two speakers and a moderator can run a fair, accountable structured debate that 
 | Cloudflare Pages for hosting | Pairs with Stream and R2; natural fit | — Pending |
 | Server-authoritative timers | Clients render, never enforce; variance target under 200ms across clients | — Pending |
 | Schema name `listening` | Onboarding doc (2026-04-19) is authoritative over Feb architecture doc | ✓ Good |
+| Accept WorkOS AuthKit as a second token issuer (ev-accounts decision 0002) | ev-accounts is migrating off Supabase Auth; dispatching on `iss` lets both token types work during the cutover, and an unset `WORKOS_CLIENT_ID` disables the new branch entirely | ✓ Shipped 2026-08-27 (PR #18) |
 | Scope: Phases 1-5 | Core debate loop + observer + transcription + notes + voting; validate before building complexity | — Pending |
 
 ---
-*Last updated: 2026-04-19 after initialization*
+*Last updated: 2026-09-16 — WorkOS AuthKit dual-issuer verification (ev-accounts decision 0002) recorded*

@@ -12,7 +12,7 @@ Scope: Architecture doc Phases 1–5 (Speaker MVP → Observer Streaming → Tra
 - [x] **INFRA-01**: `listening` schema created in shared Supabase instance (`kxsdzaojfaibhuzmclfq`) via migrations
 - [x] **INFRA-02**: Third-party service accounts created and configured (LiveKit Cloud, Mux, AWS S3, Deepgram — Cloudflare Stream/R2 replaced per 01-02 decision)
 - [x] **INFRA-03**: Next.js 15 project scaffolded and deployed to Render as a Node.js web service at `listening.empowered.vote` (Cloudflare Pages replaced per 01-02 decision — empowered.vote DNS is on AWS/GoDaddy)
-- [x] **INFRA-04**: SSO auth integrated — users redirected to `accounts.empowered.vote/login`, JWT verified via JWKS (ES256), `account_standing` checked before every civic write
+- [x] **INFRA-04**: SSO auth integrated — users redirected to `accounts.empowered.vote/login`, JWT verified via JWKS, `account_standing` checked before every civic write (since decision 0002 `verifyToken` dispatches on the token issuer: Supabase ES256 with user id from `sub`, or WorkOS AuthKit RS256 with user id from `external_id`)
 
 ### Debate Room
 

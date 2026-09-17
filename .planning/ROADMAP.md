@@ -29,7 +29,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   1. The `listening` Postgres schema exists in the shared Supabase instance with all tables and migrations applied cleanly
   2. LiveKit Cloud, Mux, AWS S3, and Deepgram accounts are provisioned and their credentials are in the environment
   3. `listening.empowered.vote` serves a Next.js 15 page deployed to Render as a Node.js web service
-  4. A user redirected from `accounts.empowered.vote` arrives with a verified ES256 JWT and has their `account_standing` checked before any civic write
+  4. A user redirected from `accounts.empowered.vote` arrives with a verified JWT and has their `account_standing` checked before any civic write (ES256 for the legacy Supabase issuer, RS256 for WorkOS AuthKit since decision 0002)
   5. A visitor who tries to join as a speaker or moderator from a mobile device sees an "Open this on desktop" message and cannot proceed
 **Plans**: 4 plans in 2 waves (01-01, 01-02, 01-03 parallel in Wave 1; 01-04 in Wave 2)
 
@@ -37,7 +37,7 @@ Plans:
 - [x] 01-01-PLAN.md — Database migrations: listening schema + 9 v1 tables + RLS policies applied to kxsdzaojfaibhuzmclfq
 - [x] 01-02-PLAN.md — Third-party service provisioning (LiveKit, Mux, AWS S3, Deepgram, accounts CORS + service keys)
 - [x] 01-03-PLAN.md — Next.js 15 scaffold on Render + EV-UI holding page + listening.empowered.vote domain
-- [x] 01-04-PLAN.md — SSO auth: JWKS ES256 middleware, silent renewal, account_standing gate, desktop gate, AUTH_BYPASS dev mode
+- [x] 01-04-PLAN.md — SSO auth: JWKS ES256 middleware, silent renewal, account_standing gate, desktop gate, AUTH_BYPASS dev mode (superseded 2026-08-27: `verifyToken` now dispatches on issuer and also accepts WorkOS AuthKit RS256 tokens)
 
 ### Phase 2: Speaker Room
 **Goal**: Two speakers and a moderator can run a full Lincoln-Douglas debate from start to finish with server-enforced timing and mic control
