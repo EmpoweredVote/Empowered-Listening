@@ -65,9 +65,9 @@ completed: 2026-04-22
 
 ## Status
 
-**COMPLETE WITH DEFERRED VERIFICATION — Tasks 1-3 complete and committed; Task 4 (live pipeline human-verify) deferred until Mux Growth plan is active.**
+**COMPLETE — Tasks 1-3 complete and committed; Task 4 approved 2026-05-07 (live pipeline test deferred to next session).**
 
-Mux free plan does not support RTMP ingest (requires Growth tier).  A nonprofit discount request has been submitted to Mux.  All code is merged and ready; verification will run once the plan is upgraded.
+Mux Growth plan is now active. Code is merged and deployed. Live pipeline test (Mux dashboard Active → HLS resolves → egress stops on debate end) was not run but is approved to unblock Phase 3 close-out. Verify in the next working session before starting a real debate.
 
 ## Performance
 
