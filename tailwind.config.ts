@@ -15,4 +15,6 @@
  *
  * Font: Manrope (Google Fonts, loaded in app/layout.tsx via next/font)
  */
-export default {};
+const config = {};
+
+export default config;
