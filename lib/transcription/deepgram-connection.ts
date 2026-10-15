@@ -8,7 +8,6 @@ const UNAVAILABLE_THRESHOLD = 0.10;
 
 export class DeepgramLiveConnection {
   // Both assigned in start() via dynamic imports
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private socket: any = null;
   private audioStream!: AudioStreamType;
   private stopped = false;
@@ -37,7 +36,6 @@ export class DeepgramLiveConnection {
     const { DefaultDeepgramClient } = await import('@deepgram/sdk');
     // Node.js 22 exposes a global WebSocket that is incompatible with the Deepgram SDK's
     // reconnecting wrapper. Force the SDK to use the `ws` package instead.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (globalThis as any).WebSocket = undefined;
     const client = new DefaultDeepgramClient({ apiKey: env.DEEPGRAM_API_KEY });
 
@@ -60,7 +58,6 @@ export class DeepgramLiveConnection {
       socket.on('error', (err: Error) => reject(err));
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     socket.on('message', async (data: any) => {
       if (data.type !== 'Results') return;
       const alt = data.channel?.alternatives?.[0];
