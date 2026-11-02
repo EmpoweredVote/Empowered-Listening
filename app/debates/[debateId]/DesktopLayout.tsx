@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useSyncExternalStore } from 'react';
 import { Group, Panel, Separator, useDefaultLayout } from 'react-resizable-panels';
 import HlsPlayer from './HlsPlayer';
 import { SegmentTimeline } from './SegmentTimeline';
@@ -21,11 +21,14 @@ const SEGMENT_DISPLAY_NAME = Object.fromEntries(
   LD_SEGMENTS.map(s => [s.segmentType, s.displayName]),
 );
 
+const noopSubscribe = () => () => {};
+
 export default function DesktopLayout({ debateId, hlsUrl, status, topic }: DesktopLayoutProps) {
   // SSR hydration guard — react-resizable-panels reads localStorage for sizes.
   // Rendering a skeleton on first pass prevents hydration mismatch.
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  // useSyncExternalStore returns false on the server and during hydration,
+  // then true on the client, without setting state in an effect.
+  const mounted = useSyncExternalStore(noopSubscribe, () => true, () => false);
 
   // Build speakers map and segments array from debate store for TranscriptPanel
   const storeSpeakers = useDebateStore(s => s.speakers);
