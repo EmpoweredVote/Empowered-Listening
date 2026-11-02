@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useCallback } from 'react';
+import { useEffect, useRef } from 'react';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 
 export interface FinalEntry {
@@ -31,11 +31,13 @@ export function useTranscriptSync(
   onFinal: (entry: FinalEntry) => void,
   onInterim: (entry: InterimEntry) => void,
 ): void {
-  // Stable callbacks to avoid re-subscribing on every render.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const stableFinal = useCallback(onFinal, []);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const stableInterim = useCallback(onInterim, []);
+  // Latest callbacks live in refs so the channel is not re-subscribed on every render.
+  const finalRef = useRef(onFinal);
+  const interimRef = useRef(onInterim);
+  useEffect(() => {
+    finalRef.current = onFinal;
+    interimRef.current = onInterim;
+  });
 
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
@@ -43,10 +45,10 @@ export function useTranscriptSync(
     const channel = supabase
       .channel(`transcript-${debateId}`)
       .on('broadcast', { event: 'final' }, (payload) => {
-        stableFinal(payload.payload as FinalEntry);
+        finalRef.current(payload.payload as FinalEntry);
       })
       .on('broadcast', { event: 'interim' }, (payload) => {
-        stableInterim(payload.payload as InterimEntry);
+        interimRef.current(payload.payload as InterimEntry);
       })
       .subscribe((status, err) => {
         if (err) {
@@ -57,5 +59,5 @@ export function useTranscriptSync(
       });
 
     return () => { void supabase.removeChannel(channel); };
-  }, [debateId, stableFinal, stableInterim]);
+  }, [debateId]);
 }
