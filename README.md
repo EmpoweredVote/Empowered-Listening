@@ -40,8 +40,7 @@ Connect the GitHub repo to Render and configure a **Node.js web service**:
 
 Set env vars in the Render dashboard (see `.env.example` for the full list).
 
-A `render.yaml` file at the repo root configures the service for Render's
-infrastructure-as-code deploy.
+The service settings live in the Render dashboard. This repo has no `render.yaml`.
 
 ### Custom domain
 
