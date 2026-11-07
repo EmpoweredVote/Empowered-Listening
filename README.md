@@ -40,7 +40,7 @@ Connect the GitHub repo to Render and configure a **Node.js web service**:
 
 Set env vars in the Render dashboard (see `.env.example` for the full list).
 
-The service settings live in the Render dashboard. This repo has no `render.yaml`.
+The service settings live in `EmpoweredVote/ev-infra` (see below). This repo has no `render.yaml`.
 
 ### Custom domain
 
@@ -50,8 +50,8 @@ In GoDaddy DNS, add a CNAME record:
 listening.empowered.vote  →  <your-render-service>.onrender.com
 ```
 
-Then add `listening.empowered.vote` as a custom domain in the Render dashboard
-under **Settings → Custom Domains**.
+Then add `listening.empowered.vote` to the service's `domains:` list in
+`EmpoweredVote/ev-infra`.
 
 ## Environment variables
 
@@ -76,3 +76,16 @@ Use `pool.query()` for all writes — PostgREST does not expose non-public schem
 
 Migrations: `supabase/migrations/`
 Apply: `supabase db push --linked`
+
+## Render settings live in ev-infra
+
+This repo's Render services (`empowered-listening`) are managed by the Render Blueprint in
+[`EmpoweredVote/ev-infra`](https://github.com/EmpoweredVote/ev-infra) (`render.yaml`).
+
+- Build and start commands, rewrites, headers, custom domains, plans, cron
+  schedules and build filters change **only through a PR to ev-infra**. Render
+  syncs its `main` branch automatically.
+- A setting changed in the Render dashboard is **undone on the next sync**.
+- Env var **values** are the exception: set them in the Render dashboard. Add a
+  new variable's name to ev-infra (with `sync: false`) so the record stays complete.
+- Do not add a `render.yaml` to this repo. Render does not read it.
