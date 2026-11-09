@@ -12,6 +12,8 @@ import { LD_SEGMENTS } from '@/lib/debate/segments';
 interface DesktopLayoutProps {
   debateId: string;
   hlsUrl: string | null;
+  /** Text shown in the video area when hlsUrl is null. */
+  videoPlaceholder: string;
   status: 'live' | 'completed' | 'scheduled';
   topic: string | null;
 }
@@ -31,7 +33,7 @@ const noopLayoutStorage: LayoutStorage = {
 const layoutStorage: LayoutStorage =
   typeof window === 'undefined' ? noopLayoutStorage : window.localStorage;
 
-export default function DesktopLayout({ debateId, hlsUrl, status, topic }: DesktopLayoutProps) {
+export default function DesktopLayout({ debateId, hlsUrl, videoPlaceholder, status, topic }: DesktopLayoutProps) {
   // SSR hydration guard — react-resizable-panels reads localStorage for sizes.
   // Rendering a skeleton on first pass prevents hydration mismatch.
   const [mounted, setMounted] = useState(false);
@@ -150,9 +152,7 @@ export default function DesktopLayout({ debateId, hlsUrl, status, topic }: Deskt
               />
             ) : (
               <div className="absolute inset-0 flex items-center justify-center text-slate-400">
-                {status === 'scheduled'
-                  ? 'Waiting for debate to start…'
-                  : 'Stream unavailable.'}
+                {videoPlaceholder}
               </div>
             )}
           </div>

@@ -11,6 +11,8 @@ import { LD_SEGMENTS } from '@/lib/debate/segments';
 interface MobileLayoutProps {
   debateId: string;
   hlsUrl: string | null;
+  /** Text shown in the video area when hlsUrl is null. */
+  videoPlaceholder: string;
   status: 'live' | 'completed' | 'scheduled';
   topic: string | null;
 }
@@ -20,7 +22,7 @@ const SEGMENT_DISPLAY_NAME = Object.fromEntries(
   LD_SEGMENTS.map(s => [s.segmentType, s.displayName]),
 );
 
-export function MobileLayout({ debateId, hlsUrl, status, topic }: MobileLayoutProps) {
+export function MobileLayout({ debateId, hlsUrl, videoPlaceholder, status, topic }: MobileLayoutProps) {
   // Build speakers map and segments array from debate store for TranscriptPanel
   const storeSpeakers = useDebateStore(s => s.speakers);
   const storeSegments = useDebateStore(s => s.segments);
@@ -49,7 +51,7 @@ export function MobileLayout({ debateId, hlsUrl, status, topic }: MobileLayoutPr
         <HlsPlayer src={hlsUrl} badgeLabel={status === 'completed' ? 'Recorded' : undefined} />
       ) : (
         <div className="absolute inset-0 flex items-center justify-center text-sm text-slate-400">
-          {status === 'scheduled' ? 'Waiting for debate to start…' : 'Stream unavailable.'}
+          {videoPlaceholder}
         </div>
       )}
     </div>
@@ -112,7 +114,7 @@ export function MobileLayout({ debateId, hlsUrl, status, topic }: MobileLayoutPr
               <HlsPlayer src={hlsUrl} className="h-full" badgeLabel={status === 'completed' ? 'Recorded' : undefined} />
             ) : (
               <div className="absolute inset-0 flex items-center justify-center text-sm text-slate-400">
-                {status === 'scheduled' ? 'Waiting for debate to start…' : 'Stream unavailable.'}
+                {videoPlaceholder}
               </div>
             )}
           </div>
