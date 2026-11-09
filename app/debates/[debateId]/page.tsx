@@ -1,13 +1,15 @@
 import { notFound } from 'next/navigation';
 import { pool } from '@/lib/db/pool';
+import {
+  DEBATE_VIDEO_COLUMNS,
+  resolveDebateVideo,
+  type DebateVideoRow,
+} from '@/lib/debates/recording';
 import ObserverShell from './ObserverShell';
 
 export const dynamic = 'force-dynamic';
 
-interface DebateRow {
-  id: string;
-  status: 'live' | 'completed' | 'scheduled';
-  mux_playback_id: string | null;
+interface DebateRow extends DebateVideoRow {
   topic: string;
 }
 
@@ -19,7 +21,7 @@ export default async function DebatePage({ params }: PageProps) {
   const { debateId } = await params;
 
   const result = await pool.query<DebateRow>(
-    `SELECT id, status, mux_playback_id, topic
+    `SELECT ${DEBATE_VIDEO_COLUMNS}, topic
      FROM listening.debates
      WHERE id = $1
        AND status IN ('live', 'completed', 'scheduled')`,
@@ -31,12 +33,14 @@ export default async function DebatePage({ params }: PageProps) {
   }
 
   const debate = result.rows[0];
+  const video = await resolveDebateVideo(debate);
 
   return (
     <ObserverShell
       debateId={debate.id}
       initialStatus={debate.status}
-      initialPlaybackId={debate.mux_playback_id}
+      initialPlaybackId={video.playbackId}
+      initialRecordingPending={video.recordingPending}
       topic={debate.topic}
     />
   );
