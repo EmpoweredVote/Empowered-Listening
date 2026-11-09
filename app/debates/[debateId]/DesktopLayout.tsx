@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Group, Panel, Separator, useDefaultLayout } from 'react-resizable-panels';
+import { Group, Panel, Separator, useDefaultLayout, type LayoutStorage } from 'react-resizable-panels';
 import HlsPlayer from './HlsPlayer';
 import { SegmentTimeline } from './SegmentTimeline';
 import { TranscriptPanel } from '@/components/transcript/TranscriptPanel';
@@ -20,6 +20,16 @@ interface DesktopLayoutProps {
 const SEGMENT_DISPLAY_NAME = Object.fromEntries(
   LD_SEGMENTS.map(s => [s.segmentType, s.displayName]),
 );
+
+// useDefaultLayout defaults to the global localStorage, which does not exist when
+// this client component is server-rendered on Node 22 (pinned in .node-version).
+// On the server, hand it a no-op storage; in the browser, use real localStorage.
+const noopLayoutStorage: LayoutStorage = {
+  getItem: () => null,
+  setItem: () => {},
+};
+const layoutStorage: LayoutStorage =
+  typeof window === 'undefined' ? noopLayoutStorage : window.localStorage;
 
 export default function DesktopLayout({ debateId, hlsUrl, status, topic }: DesktopLayoutProps) {
   // SSR hydration guard — react-resizable-panels reads localStorage for sizes.
@@ -53,6 +63,7 @@ export default function DesktopLayout({ debateId, hlsUrl, status, topic }: Deskt
   // Panel size persistence via useDefaultLayout hook (v4 replacement for autoSaveId prop)
   const { defaultLayout, onLayoutChanged } = useDefaultLayout({
     id: 'observer-desktop-layout-v1',
+    storage: layoutStorage,
   });
 
   // Refs for keyboard shortcuts
