@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useSyncExternalStore } from 'react';
-import { Group, Panel, Separator, useDefaultLayout } from 'react-resizable-panels';
+import { Group, Panel, Separator, useDefaultLayout, type LayoutStorage } from 'react-resizable-panels';
 import HlsPlayer from './HlsPlayer';
 import { SegmentTimeline } from './SegmentTimeline';
 import { TranscriptPanel } from '@/components/transcript/TranscriptPanel';
@@ -12,6 +12,8 @@ import { LD_SEGMENTS } from '@/lib/debate/segments';
 interface DesktopLayoutProps {
   debateId: string;
   hlsUrl: string | null;
+  /** Text shown in the video area when hlsUrl is null. */
+  videoPlaceholder: string;
   status: 'live' | 'completed' | 'scheduled';
   topic: string | null;
 }
@@ -21,9 +23,19 @@ const SEGMENT_DISPLAY_NAME = Object.fromEntries(
   LD_SEGMENTS.map(s => [s.segmentType, s.displayName]),
 );
 
+// useDefaultLayout defaults to the global localStorage, which does not exist when
+// this client component is server-rendered on Node 22 (pinned in .node-version).
+// On the server, hand it a no-op storage; in the browser, use real localStorage.
+const noopLayoutStorage: LayoutStorage = {
+  getItem: () => null,
+  setItem: () => {},
+};
+const layoutStorage: LayoutStorage =
+  typeof window === 'undefined' ? noopLayoutStorage : window.localStorage;
+
 const noopSubscribe = () => () => {};
 
-export default function DesktopLayout({ debateId, hlsUrl, status, topic }: DesktopLayoutProps) {
+export default function DesktopLayout({ debateId, hlsUrl, videoPlaceholder, status, topic }: DesktopLayoutProps) {
   // SSR hydration guard — react-resizable-panels reads localStorage for sizes.
   // Rendering a skeleton on first pass prevents hydration mismatch.
   // useSyncExternalStore returns false on the server and during hydration,
@@ -56,6 +68,7 @@ export default function DesktopLayout({ debateId, hlsUrl, status, topic }: Deskt
   // Panel size persistence via useDefaultLayout hook (v4 replacement for autoSaveId prop)
   const { defaultLayout, onLayoutChanged } = useDefaultLayout({
     id: 'observer-desktop-layout-v1',
+    storage: layoutStorage,
   });
 
   // Refs for keyboard shortcuts
@@ -142,9 +155,7 @@ export default function DesktopLayout({ debateId, hlsUrl, status, topic }: Deskt
               />
             ) : (
               <div className="absolute inset-0 flex items-center justify-center text-slate-400">
-                {status === 'scheduled'
-                  ? 'Waiting for debate to start…'
-                  : 'Stream unavailable.'}
+                {videoPlaceholder}
               </div>
             )}
           </div>

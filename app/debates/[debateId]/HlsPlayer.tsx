@@ -4,7 +4,7 @@
  * HlsPlayer — client-only HLS video player with Safari native fallback.
  *
  * Parent contract: the parent MUST NOT render <HlsPlayer> until `src` is
- * available (i.e. debate status === 'live' AND mux_playback_id is non-null).
+ * available (a live stream or a completed debate's recording playback ID).
  * hls.js does not retry on 404; mounting against a missing stream URL will
  * result in an immediate NETWORK_ERROR rather than a graceful retry.
  */

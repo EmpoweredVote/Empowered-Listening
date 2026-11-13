@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPool } from '@/lib/db/pool';
+import {
+  DEBATE_VIDEO_COLUMNS,
+  resolveDebateVideo,
+  type DebateVideoRow,
+} from '@/lib/debates/recording';
 
 export async function GET(
   _req: NextRequest,
@@ -10,11 +15,8 @@ export async function GET(
   // Anonymous observers are permitted — RLS grants anon SELECT on live/completed debates.
   // The route uses the service-role pool, so we enforce the same status gate explicitly
   // to avoid leaking whether a scheduled/cancelled debate exists.
-  const { rows } = await getPool().query<{
-    mux_playback_id: string | null;
-    status: string;
-  }>(
-    `SELECT mux_playback_id, status
+  const { rows } = await getPool().query<DebateVideoRow>(
+    `SELECT ${DEBATE_VIDEO_COLUMNS}
      FROM listening.debates
      WHERE id = $1
        AND status IN ('live', 'completed')`,
@@ -26,8 +28,15 @@ export async function GET(
     return NextResponse.json({ error: 'Debate not available' }, { status: 404 });
   }
 
+  // mux_playback_id is the ID to play now: the live stream while live, the
+  // recording once completed.
+  const video = await resolveDebateVideo(rows[0]);
   return NextResponse.json(
-    { mux_playback_id: rows[0].mux_playback_id, status: rows[0].status },
+    {
+      mux_playback_id: video.playbackId,
+      status: rows[0].status,
+      recording_pending: video.recordingPending,
+    },
     { headers: { 'Cache-Control': 'no-store' } },
   );
 }

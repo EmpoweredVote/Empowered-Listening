@@ -29,3 +29,36 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npm run build
+
+  # Dependabot auto-merge. Runs only on Dependabot PRs, only after every job above passed
+  # (or was skipped on purpose), and only for patch/minor updates. Majors stay open for a
+  # person to read. A merge that fails (usually a lockfile conflict after a sibling PR
+  # merged) is left alone: Dependabot rebases the PR, CI reruns, and this job tries again.
+  # Merges made with GITHUB_TOKEN do not start push-triggered workflows; hosting deploys
+  # (which listen to GitHub directly) still run.
+  dependabot-automerge:
+    name: dependabot auto-merge
+    needs: [build]
+    if: >-
+      always()
+      && github.event_name == 'pull_request'
+      && github.event.pull_request.user.login == 'dependabot[bot]'
+      && github.actor == 'dependabot[bot]'
+      && !contains(needs.*.result, 'failure')
+      && !contains(needs.*.result, 'cancelled')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - id: meta
+        uses: dependabot/fetch-metadata@v3.1.0
+      - name: Merge patch and minor updates
+        if: steps.meta.outputs.update-type != 'version-update:semver-major'
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if ! gh pr merge --squash "$PR_URL"; then
+            echo "::warning::Merge did not go through (likely a conflict). Dependabot will rebase and this job will retry."
+          fi

@@ -1,6 +1,7 @@
 import 'server-only';
 import Mux from '@mux/mux-node';
 import { env } from '@/lib/env';
+import { pickRecording, type RecordingLookup } from './recording';
 
 let _mux: Mux | null = null;
 
@@ -40,4 +41,16 @@ export async function createMuxLiveStream(): Promise<MuxStreamInfo> {
 
 export async function completeMuxLiveStream(muxStreamId: string): Promise<void> {
   await getMux().video.liveStreams.complete(muxStreamId);
+}
+
+/**
+ * Look up the recorded asset Mux made from a live stream (via the stream's
+ * recent_asset_ids). Returns the best ready recording's public playback ID.
+ */
+export async function findLiveStreamRecording(muxStreamId: string): Promise<RecordingLookup> {
+  const mux = getMux();
+  const stream = await mux.video.liveStreams.retrieve(muxStreamId);
+  const assetIds = stream.recent_asset_ids ?? [];
+  const assets = await Promise.all(assetIds.map(id => mux.video.assets.retrieve(id)));
+  return pickRecording(assets);
 }
