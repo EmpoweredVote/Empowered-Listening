@@ -20,10 +20,13 @@ export function CreateDebateForm() {
 
   useEffect(() => {
     const token = localStorage.getItem('ev_token');
-    if (!token) { setSubmitState('unauthorized'); return; }
-    fetch('https://api.empowered.vote/api/account/me', {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    // No token rejects into the same .catch, so state is only set in callbacks.
+    const me = token
+      ? fetch('https://api.empowered.vote/api/account/me', {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+      : Promise.reject(new Error('no token'));
+    me
       .then(r => r.ok ? r.json() : Promise.reject(new Error(`status ${r.status}`)))
       .then((acct: Record<string, unknown>) => {
         setModeratorDisplayName((acct.display_name as string | undefined) ?? 'Moderator');

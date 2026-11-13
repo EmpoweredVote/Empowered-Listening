@@ -42,10 +42,11 @@ export function SegmentTimeline({ className = '', variant = 'desktop' }: Segment
   );
   const speakers = useDebateStore(s => s.speakers);
 
-  // 1-Hz tick drives progress fill on the active segment
-  const [, forceTick] = useState(0);
+  // 1-Hz tick drives progress fill on the active segment.  "now" lives in state
+  // so render stays pure (no Date.now() in render).
+  const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
-    const iv = setInterval(() => forceTick(n => n + 1), 1000);
+    const iv = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(iv);
   }, []);
 
@@ -55,7 +56,7 @@ export function SegmentTimeline({ className = '', variant = 'desktop' }: Segment
   // Compute progress percentage for the active segment
   let progressPct = 0;
   if (activeSegment && activeSegment.status === 'active' && activeSegment.end_time) {
-    const remainingMs = Math.max(0, new Date(activeSegment.end_time).getTime() - Date.now());
+    const remainingMs = Math.max(0, new Date(activeSegment.end_time).getTime() - now);
     const totalMs = activeSegment.allocated_seconds * 1000;
     progressPct = totalMs > 0 ? Math.max(0, Math.min(100, ((totalMs - remainingMs) / totalMs) * 100)) : 0;
   } else if (activeSegment && activeSegment.status === 'paused') {
