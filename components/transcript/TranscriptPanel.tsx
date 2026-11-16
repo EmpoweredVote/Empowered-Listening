@@ -3,6 +3,8 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { useTranscriptSync, type FinalEntry, type InterimEntry } from '@/hooks/useTranscriptSync';
 import { TranscriptEntry } from './TranscriptEntry';
+import { TranscriptSelectionPopup } from './TranscriptSelectionPopup';
+import type { UserRole } from '@/hooks/useUserRole';
 import type { TranscriptEntryRow } from '@/app/api/debates/[debateId]/transcript/route';
 
 interface Speaker {
@@ -21,6 +23,9 @@ interface TranscriptPanelProps {
   debateId: string;
   speakers: Record<string, Speaker>;  // speakerId (UUID) → speaker info
   segments: DebateSegment[];          // ordered array from debate store
+  /** Viewer's role; only 'speaker' gets the rebuttal-selection affordance. */
+  userRole?: UserRole;
+  token?: string | null;
 }
 
 /** Format seconds as "m:ss" — e.g., 480 → "8:00", 65 → "1:05" */
@@ -54,7 +59,13 @@ function findSegmentForEntry(
  * 3. Renders segment header dividers between LD segments
  * 4. Auto-scrolls to bottom; shows "Back to live" button when scrolled up
  */
-export function TranscriptPanel({ debateId, speakers, segments }: TranscriptPanelProps) {
+export function TranscriptPanel({
+  debateId,
+  speakers,
+  segments,
+  userRole,
+  token,
+}: TranscriptPanelProps) {
   const [entries, setEntries] = useState<TranscriptEntryRow[]>([]);
   const [interims, setInterims] = useState<Record<string, string>>({}); // speakerId → text
   const [isFollowingLive, setIsFollowingLive] = useState(true);
@@ -218,6 +229,7 @@ export function TranscriptPanel({ debateId, speakers, segments }: TranscriptPane
             <TranscriptEntry
               key={entry.id ?? idx}
               entry={{
+                id: entry.id,
                 speakerId: entry.speaker_id,
                 text: entry.text,
                 spokenAt: entry.spoken_at,
@@ -253,6 +265,15 @@ export function TranscriptPanel({ debateId, speakers, segments }: TranscriptPane
             Back to live ↓
           </button>
         </div>
+      )}
+
+      {/* Speakers only: turn a transcript selection into a rebuttal note. */}
+      {userRole === 'speaker' && token && (
+        <TranscriptSelectionPopup
+          debateId={debateId}
+          token={token}
+          containerRef={scrollRef}
+        />
       )}
     </div>
   );

@@ -38,9 +38,14 @@ function getBearerFromRequest(req: NextRequest): string | null {
   return authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
 }
 
-const putBodySchema = z.object({
-  content: z.string().trim().min(1).max(2000),
-});
+const putBodySchema = z
+  .object({
+    content: z.string().trim().min(1).max(2000).optional(),
+    rebuttalOrder: z.union([z.number().int().nonnegative(), z.null()]).optional(),
+  })
+  .refine((b) => b.content !== undefined || b.rebuttalOrder !== undefined, {
+    message: 'Provide content or rebuttalOrder',
+  });
 
 /**
  * PUT /api/debates/[debateId]/notes/[noteId]
@@ -81,15 +86,28 @@ export async function PUT(
     return NextResponse.json({ error: 'Invalid body' }, { status: 400 });
   }
 
-  const { content } = parsed.data;
+  const { content, rebuttalOrder } = parsed.data;
+  const updatingRebuttalOrder = rebuttalOrder !== undefined;
 
   const pool = getPool();
   const result = await pool.query<NoteRow>(
     `UPDATE listening.notes
-     SET content = $1, is_edited = true, updated_at = NOW()
-     WHERE id = $2 AND debate_id = $3 AND user_id = $4
+     SET
+       content      = CASE WHEN $1::boolean THEN $2::text       ELSE content       END,
+       is_edited    = CASE WHEN $1::boolean THEN true            ELSE is_edited     END,
+       updated_at   = NOW(),
+       rebuttal_order = CASE WHEN $3::boolean THEN $4::integer  ELSE rebuttal_order END
+     WHERE id = $5 AND debate_id = $6 AND user_id = $7
      RETURNING ${NOTE_COLUMNS}`,
-    [content, noteId, debateId, userId],
+    [
+      content !== undefined,   // $1 — update content?
+      content ?? null,         // $2 — new content value
+      updatingRebuttalOrder,   // $3 — update rebuttal_order?
+      rebuttalOrder ?? null,   // $4 — new rebuttal_order value
+      noteId,                  // $5
+      debateId,                // $6
+      userId,                  // $7
+    ],
   );
 
   if (result.rowCount === 0) {

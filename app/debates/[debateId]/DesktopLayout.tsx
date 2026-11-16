@@ -7,6 +7,7 @@ import { SegmentTimeline } from './SegmentTimeline';
 import { TranscriptPanel } from '@/components/transcript/TranscriptPanel';
 import { NotesPanel } from '@/components/notes/NotesPanel';
 import { useDebateStore } from '@/store/debateStore';
+import { useUserRole } from '@/hooks/useUserRole';
 import { LD_SEGMENTS } from '@/lib/debate/segments';
 
 interface DesktopLayoutProps {
@@ -41,6 +42,9 @@ export default function DesktopLayout({ debateId, hlsUrl, videoPlaceholder, stat
   // useSyncExternalStore returns false on the server and during hydration,
   // then true on the client, without setting state in an effect.
   const mounted = useSyncExternalStore(noopSubscribe, () => true, () => false);
+
+  // Speakers get the transcript-selection affordance; everyone else does not.
+  const { userRole, token } = useUserRole();
 
   // Build speakers map and segments array from debate store for TranscriptPanel
   const storeSpeakers = useDebateStore(s => s.speakers);
@@ -176,6 +180,8 @@ export default function DesktopLayout({ debateId, hlsUrl, videoPlaceholder, stat
               debateId={debateId}
               speakers={speakersMap}
               segments={segmentsArray}
+              userRole={userRole}
+              token={token}
             />
           </div>
         </Panel>

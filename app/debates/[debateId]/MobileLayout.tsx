@@ -6,6 +6,7 @@ import { MobileTabs, type MobileTab } from './MobileTabs';
 import { TranscriptPanel } from '@/components/transcript/TranscriptPanel';
 import { NotesPanel } from '@/components/notes/NotesPanel';
 import { useDebateStore } from '@/store/debateStore';
+import { useUserRole } from '@/hooks/useUserRole';
 import { LD_SEGMENTS } from '@/lib/debate/segments';
 
 interface MobileLayoutProps {
@@ -23,6 +24,9 @@ const SEGMENT_DISPLAY_NAME = Object.fromEntries(
 );
 
 export function MobileLayout({ debateId, hlsUrl, videoPlaceholder, status, topic }: MobileLayoutProps) {
+  // Speakers get the transcript-selection affordance; everyone else does not.
+  const { userRole, token } = useUserRole();
+
   // Build speakers map and segments array from debate store for TranscriptPanel
   const storeSpeakers = useDebateStore(s => s.speakers);
   const storeSegments = useDebateStore(s => s.segments);
@@ -80,6 +84,8 @@ export function MobileLayout({ debateId, hlsUrl, videoPlaceholder, status, topic
             debateId={debateId}
             speakers={speakersMap}
             segments={segmentsArray}
+            userRole={userRole}
+            token={token}
           />
         </div>
       ),
