@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSession } from '@/components/auth/SessionProvider';
 import { useDebateStore } from '@/store/debateStore';
-import { decodeJwt } from 'jose';
+import { userIdFromToken } from '@/lib/auth/user-id';
 
 export type UserRole = 'observer' | 'speaker' | 'moderator' | 'anonymous';
 type Tier = 'inform' | 'connected' | 'empowered';
@@ -33,15 +33,12 @@ export function useUserRole(): UserRoleState {
   const { token, displayName, loading: sessionLoading } = useSession();
   const speakers = useDebateStore((s) => s.speakers);
 
-  // Decode token to extract userId (sub claim)
-  const userId = useMemo(() => {
-    if (!token) return null;
-    try {
-      return (decodeJwt(token).sub as string) ?? null;
-    } catch {
-      return null;
-    }
-  }, [token]);
+  // Decode the token to extract the INTERNAL user id.  This must be
+  // `external_id` first and `sub` second (ev-accounts decision 0002): under a
+  // WorkOS token `sub` is a WorkOS id and matches no `debate_speakers.user_id`,
+  // which would silently demote every speaker and moderator to 'observer'.
+  // See lib/auth/user-id.ts.
+  const userId = useMemo(() => userIdFromToken(token), [token]);
 
   // Tier result, tagged with the token it was fetched for.  A result for any
   // other token is ignored, so tier and loading are derived, not reset in effects.
