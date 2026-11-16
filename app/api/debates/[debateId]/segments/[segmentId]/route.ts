@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requireModeratorFromRequest, ModeratorGateError } from '@/lib/auth/require-moderator';
-import { startSegment, endSegment, repeatSegment } from '@/lib/debate/transitions';
+import { startSegment, repeatSegment } from '@/lib/debate/transitions';
 import { applySegmentMicPermissions } from '@/lib/debate/mic-control';
+import { performSegmentEnd } from '@/lib/debate/end-segment-flow';
+import { scheduleSegmentExpiry, cancelSegmentExpiry } from '@/lib/debate/expiry-registry';
 import { getPool } from '@/lib/db/pool';
 import { activeWorkers } from '@/lib/transcription/registry';
 import { TranscriptionWorker } from '@/lib/transcription/worker';
-import { teardownDebateMedia, sweepOrphanedEgress } from '@/lib/debate/teardown';
+import { sweepOrphanedEgress } from '@/lib/debate/teardown';
 import { notifyDebateChanged } from '@/lib/debate/notify';
 
 // Required: this route reaches pg — directly and now also through the
@@ -68,6 +70,9 @@ export async function POST(
       );
       const segment = await startSegment({ debateId, segmentId, moderatorUserId, durationSeconds });
       await applySegmentMicPermissions(debateId, segmentId);
+
+      // Server-authoritative expiry. The moderator's tab no longer drives this.
+      await scheduleSegmentExpiry(debateId, segmentId);
 
       // ---- Phase 03-01: bootstrap Mux + LiveKit egress on first-segment start ----
       const { rows: debateRows } = await pool.query<{
@@ -180,47 +185,23 @@ export async function POST(
     }
 
     if (action === 'end') {
-      const segment = await endSegment({ debateId, segmentId, moderatorUserId });
+      // The timer, if any, has been superseded by this explicit end.
+      cancelSegmentExpiry(segmentId);
 
-      // ---- Phase 03-01: shut down egress + finalize Mux on last-segment end ----
-      const { rows: statusRows } = await pool.query<{ status: string }>(
-        `SELECT status FROM listening.debates WHERE id = $1`,
-        [debateId],
-      );
-
-      if (statusRows[0]?.status === 'completed') {
-        // One teardown path, shared with POST /end and the orphan sweep, so
-        // egress, Mux and the transcription worker can only be released one
-        // way. This used to be inlined here, which is why every other way a
-        // debate could end leaked all three.
-        await teardownDebateMedia(debateId);
-      }
-
-      // After end, no segment is active — mute both speakers (between-segment state).
-      // applySegmentMicPermissions reads the segment_type that was just ended, which would
-      // re-grant mics.  Between-segment muting is handled by a separate call path: revoke both.
-      // Here we inline the revoke to keep the route self-contained.
-      const { rows: speakerRows } = await pool.query<{ role: string; livekit_identity: string }>(
-        `SELECT role, livekit_identity FROM listening.debate_speakers WHERE debate_id = $1 AND role IN ('affirmative','negative')`,
-        [debateId],
-      );
-      const { rows: debateRows } = await pool.query<{ livekit_room_name: string }>(
-        `SELECT livekit_room_name FROM listening.debates WHERE id = $1`, [debateId]);
-      if (debateRows.length > 0) {
-        const { setMicPermission } = await import('@/lib/livekit/room-service');
-        await Promise.allSettled(
-          speakerRows.map(s => setMicPermission(debateRows[0].livekit_room_name, s.livekit_identity, false)),
-        );
-      }
-
-      await notifyDebateChanged(debateId, 'segment-end');
-
+      // Teardown, mic revoke and the change notification all moved into
+      // performSegmentEnd so the server-side expiry timer runs the identical
+      // path — see lib/debate/end-segment-flow.ts. A segment that expires on
+      // the server has to do the whole job, not most of it.
+      const segment = await performSegmentEnd({ debateId, segmentId, moderatorUserId });
       return NextResponse.json({ segment });
     }
 
     // 'repeat' — full reset of the segment timer + clear bonus used; re-apply mic permissions
     const segment = await repeatSegment({ debateId, segmentId, moderatorUserId, durationSeconds });
     await applySegmentMicPermissions(debateId, segmentId);
+    // repeat resets end_time, so the old deadline is wrong — re-arm from the
+    // new one before telling anyone the clock is running again.
+    await scheduleSegmentExpiry(debateId, segmentId);
     await notifyDebateChanged(debateId, 'segment-repeat');
     return NextResponse.json({ segment });
   } catch (e) {

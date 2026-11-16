@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { verifyToken } from '@/lib/auth/jwks';
 import { getPool } from '@/lib/db/pool';
 import { startPrepTime, endPrepTime } from '@/lib/debate/transitions';
+import { scheduleSegmentExpiry, cancelSegmentExpiry } from '@/lib/debate/expiry-registry';
 import { LD_PREP_TIME_SECONDS } from '@/lib/debate/segments';
 import { notifyDebateChanged } from '@/lib/debate/notify';
 
@@ -42,12 +43,18 @@ export async function POST(
         debateId, segmentId, speakerId, callerUserId,
         prepSeconds: prepSecondsRequested ?? LD_PREP_TIME_SECONDS,
       });
+      // Prep pauses the main timer, so the pending expiry is no longer a real
+      // deadline — drop it, or the segment would end during prep.
+      cancelSegmentExpiry(segmentId);
       // Prep pauses the segment, which changes what every client should be
       // showing and whether a microphone should be live.
       await notifyDebateChanged(debateId, 'prep-start');
       return NextResponse.json(result);
     }
     const segment = await endPrepTime({ debateId, segmentId, speakerId, callerUserId });
+    // end_prep_time restores the main timer from the snapshot, producing a new
+    // end_time — re-arm against it before telling anyone the clock is running.
+    await scheduleSegmentExpiry(debateId, segmentId);
     await notifyDebateChanged(debateId, 'prep-end');
     return NextResponse.json({ segment });
   } catch (e) {
