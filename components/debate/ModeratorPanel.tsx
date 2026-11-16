@@ -2,7 +2,6 @@
 
 import React, { useRef, useState } from 'react';
 import { useDebateStore } from '@/store/debateStore';
-import { useSegmentAutoExpire } from '@/hooks/useSegmentAutoExpire';
 import { LD_SEGMENTS } from '@/lib/debate/segments';
 import { SegmentTimer } from './SegmentTimer';
 import { PrepTimeDisplay } from './PrepTimeDisplay';
@@ -13,8 +12,6 @@ interface ModeratorPanelProps {
 }
 
 export function ModeratorPanel({ debateId }: ModeratorPanelProps) {
-  // This panel drives auto-expire — only the moderator's tab should run it.
-  useSegmentAutoExpire(debateId, true);
 
   // Track which speaker has an active prep session.
   // Cleared when prep ends (by either speaker clicking end, or the server resetting
@@ -70,7 +67,7 @@ export function ModeratorPanel({ debateId }: ModeratorPanelProps) {
       <div className="mb-4 flex items-center gap-3">
         <SegmentTimer className="text-3xl" />
         <PrepTimeDisplay />
-        <BonusTimeDisplay debateId={debateId} />
+        <BonusTimeDisplay />
       </div>
 
       <div className="flex flex-wrap gap-2">

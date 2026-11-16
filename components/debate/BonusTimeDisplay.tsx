@@ -1,22 +1,25 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useDebateStore } from '@/store/debateStore';
 
 interface BonusTimeDisplayProps {
-  debateId: string;
   className?: string;
 }
 
-export function BonusTimeDisplay({ debateId, className = '' }: BonusTimeDisplayProps) {
+/**
+ * Renders the speaker's remaining bonus time. Display only.
+ *
+ * This used to POST `action: 'end'` when the pool hit zero, which made the
+ * moderator's open tab the thing that actually enforced the clock. Expiry is
+ * now scheduled server-side (lib/debate/expiry-registry.ts), so this component
+ * counts down and nothing more — "clients render, they never enforce".
+ */
+export function BonusTimeDisplay({ className = '' }: BonusTimeDisplayProps) {
   const active = useDebateStore(s => s.getActiveSegment());
   const speakers = useDebateStore(s => s.speakers);
   // 200ms tick. "now" lives in state so render stays pure (no Date.now() in render).
   const [now, setNow] = useState(() => Date.now());
-
-  // Track which (debateId, segmentId) pair we've already fired end-segment for
-  // so we don't fire twice (React StrictMode or re-render bursts).
-  const firedRef = useRef<string | null>(null);
 
   useEffect(() => {
     const iv = setInterval(() => setNow(Date.now()), 200);
@@ -35,30 +38,13 @@ export function BonusTimeDisplay({ debateId, className = '' }: BonusTimeDisplayP
   const bonusPoolMs = (speaker?.bonus_time_seconds ?? 0) * 1000;
   const bonusRemainingMs = Math.max(0, bonusPoolMs - msSinceExpired);
 
-  // Segment whose bonus is exhausted, or null.  Only shown (and only exhausted)
-  // after the MAIN segment's end_time has passed.
-  const exhaustedSegmentId =
-    visible && now >= endTimeMs && bonusRemainingMs <= 0 ? active!.id : null;
-
-  // Exhaustion — fire end-segment once per (debateId, segmentId).  Runs in an
-  // effect, never during render, so a double render cannot send it twice.
-  useEffect(() => {
-    if (!exhaustedSegmentId) return;
-    const key = `${debateId}:${exhaustedSegmentId}`;
-    if (firedRef.current === key) return;
-    firedRef.current = key;
-    const token = localStorage.getItem('ev_token');
-    void fetch(`/api/debates/${debateId}/segments/${exhaustedSegmentId}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ action: 'end' }),
-    });
-  }, [exhaustedSegmentId, debateId]);
+  // True once the pool is spent. The server ends the segment; this is just the
+  // zeroed readout shown until that lands and the store updates.
+  const exhausted = visible && now >= endTimeMs && bonusRemainingMs <= 0;
 
   if (!visible || now < endTimeMs) return null;
 
-  if (exhaustedSegmentId) {
-    // Render zeroed state briefly until the server flips the segment to completed.
+  if (exhausted) {
     return (
       <div className={`rounded bg-red-800 px-3 py-2 text-white ${className}`}>
         <span className="text-xs uppercase tracking-wide">Bonus</span>
