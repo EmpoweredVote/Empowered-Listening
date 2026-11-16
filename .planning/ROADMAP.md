@@ -133,7 +133,7 @@ Plans:
 **Status**: 🔴 **DEFERRED 2026-11-15 — not planned, by decision.**  The scope below is unchanged and still wanted; it is waiting on two prerequisites.
 
 1. **Badges do not exist yet.**  The badge check in VOTE-05 is not a technical detail, it is the premise: the badge is what establishes that everyone speaking and voting is working from the same facts.  Badges live in ev-accounts, not here.  Building the vote machinery with that check stubbed out would either sit unused until badges land, or ship a vote that contradicts the thing the vote was designed to protect.  Geographic restriction is the same shape of "one day, not now" — there is no column for it on `debates`, and nothing to set.
-2. **The live pipeline has never run.**  VOTE-01 (Last Speaker vote) and VOTE-02 (dynamic Last Word segment) happen *during* a debate and cannot be verified without it.  Same gate that blocks Phase 5's Task 3.
+2. **No second blocker.**  An earlier draft of this note claimed VOTE-01 and VOTE-02 were also blocked on the unverified Mux pipeline.  They are not: `ObserverShell.tsx` resolves `hlsUrl` to null when there is no `mux_playback_id` and the observer page renders with "Stream unavailable." in the video area, with the segment timeline, transcript and notes panels all working.  The audience can vote without watching video.  Badges are the only real prerequisite.
 
 What is *not* blocked: three of VOTE-05's five gate conditions already exist and are proven in the notes routes — JWT verification (`verifyToken`, dual-issuer, 01-04), Connected/Empowered tier (`requireConnectedTier`, 05-02) and `account_standing` (01-04).  Only the badge and geographic clauses are missing.
 
