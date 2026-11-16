@@ -5,7 +5,7 @@
 See: .planning/PROJECT.md (updated 2026-04-19)
 
 **Core value:** Two speakers and a moderator can run a fair, accountable structured debate that any connected observer can watch live, with a permanent and searchable transcript produced automatically.
-**Current focus:** Phase 5 (Notes) — all five plans written and shipped; phase exit blocked on live verification
+**Current focus:** Closing known gaps while Phase 5's live verification and Phase 6 are both blocked — `/moderator/*` middleware gate, server-side segment auto-expire, bonus-pool persistence, and unblocking the Mux pipeline
 
 ## Current Position
 
@@ -148,9 +148,10 @@ Recent decisions affecting current work:
 - [03-01 deferred]: Live pipeline verification (Task 4) not yet run — Mux Growth plan required for RTMP ingest.  Also confirm 'reduced' vs 'low' latency_mode once live testing is possible.  The nonprofit discount request went in April 2026 and is still unanswered as of 2026-11-15; this now blocks Phase 5's exit as well, since Task 3 needs a real debate to watch.
 - [05-05 blocking]: Phase 5 cannot be marked complete until 05-05 Task 3 passes.  It needs a speaker, an observer and a moderator across two browsers: promote/demote, drag order surviving a reload, checkboxes clearing on reload, keyboard drag a11y, the selection popup writing a real `source_transcript_entry_id`, the popup absent for observers and moderators, Export PDF unbroken, and a clean console.
 - [#69 open]: The two-browser live check of PR #58 (bonus-time render side effect) was never run — PR #58 merged before manual verification.  Assigned to chrisandrewsedu.
+- [2026-11-15 decision]: **Phase 6 (Voting and Badges) is deferred, not planned.**  Badges do not exist yet in ev-accounts, and the badge check is the premise of the vote gate rather than a detail of it — voting that ships without it contradicts its own purpose.  Geographic restriction is wanted eventually but has no column on `debates` and nothing to set.  VOTE-01 and VOTE-02 additionally need a live debate to verify, so they sit behind the same Mux gate.  Scope is unchanged in ROADMAP.md; revisit when badges ship or the live pipeline is verified.
 
 ## Session Continuity
 
 Last session: 2026-11-15
 Stopped at: PR #71 open and green — 05-05 Tasks 1-2 (transcript selection popup, sortable rebuttal checklist) plus a root CLAUDE.md, which this repo was the only EV app without.  PR #70 (client identity fix) merged first as 808226e.
-Resume file: None — next action is the live verification sitting, then `05-05-SUMMARY.md` and Phase 6 planning (Voting and Badges, success criteria written, no plans yet)
+Resume file: None — Phase 6 deferred by decision (see Blockers).  Next work is the three known gaps and the Mux unblock; the live verification sitting and `05-05-SUMMARY.md` follow once a debate can actually run.
