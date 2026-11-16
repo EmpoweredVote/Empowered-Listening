@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-04-19)
 
 **Core value:** Two speakers and a moderator can run a fair, accountable structured debate that any connected observer can watch live, with a permanent and searchable transcript produced automatically.
-**Current focus:** Phase 5 (Notes) — Phase 4 Transcription complete; all four plans delivered
+**Current focus:** Phase 5 (Notes) — all five plans written and shipped; phase exit blocked on live verification
 
 ## Current Position
 
-Phase: 5 of 6 (Notes) — in progress
-Plan: 05-04 complete (4 of 5 plans in Phase 5 delivered)
-Status: Phase 5 in progress — 05-01, 05-02, 05-03, 05-04 complete; 05-05 remains
-Last activity: 2026-04-27 — Completed 05-04-PLAN.md (NotesPanel + NoteInput + NoteItem + useUserRole wired into layouts)
+Phase: 5 of 6 (Notes) — code complete, not verified
+Plan: 05-05 Tasks 1-2 complete (5 of 5 plans in Phase 5 delivered)
+Status: Phase 5 code complete — 05-01 … 05-05 shipped.  **05-05 Task 3, the human-verify gate, has not been run**, so the phase is not closed.
+Last activity: 2026-11-15 — PR #70 (identity fix) merged as 808226e; PR #71 (05-05 Tasks 1-2 + a root CLAUDE.md) open with CI green
 
-Progress: [████████████████████████░] (observer notes UI complete; speaker rebuttal checklist remains)
+Progress: [█████████████████████████] code — [░░░░░░░░░░] verification (Task 3 outstanding)
 
 ## Performance Metrics
 
@@ -128,10 +128,15 @@ Recent decisions affecting current work:
   - [05-04]: Export PDF via fetch → blob → object URL → anchor click (not plain <a href>) because route requires Authorization header
   - [05-04]: isAnonymous = !token && !loading (not just !token) — avoids flash of upgrade message during session load
   - [05-04]: NoteInput uses getState() (not reactive subscription) to read active segment at save time — avoids re-render churn
+  - [2026-11-15 / PR #70]: Client identity resolves through `userIdFromToken` in lib/auth/user-id.ts (`external_id` first, then `sub`), not `decodeJwt(token).sub`.  useUserRole compared a raw WorkOS sub against `debate_speakers.user_id`, which is the internal UUID — a guaranteed miss that silently demoted every WorkOS-issued speaker and moderator to observer with no auth error anywhere.  Latent until now only because useUserRole's single consumer destructured `{ token, tier, loading }` and ignored `userRole`; 05-05 makes `userRole` load-bearing in five files.  Server side (`verifyToken` → `userId`) was already correct
+  - [2026-11-15]: The browser Supabase client stays anon-key only (`persistSession: false`, nothing calls `realtime.setAuth()`), so `auth.uid()` is null in the browser and the `auth.uid()`-based RLS policies are dormant **by design** — recorded in a comment in lib/supabase/client.ts so the next reader does not "fix" it
+  - [05-05]: Transcript entries arriving over the broadcast channel get a synthetic `${speakerId}-${spokenAt}` id (TranscriptPanel.tsx), but `source_transcript_entry_id` is a uuid FK and the POST schema validates `.uuid()`.  TranscriptEntry guards with a UUID regex and emits `data-transcript-entry-id` only for real ids; a selection on a not-yet-persisted line still becomes a note, just without an anchor.  The plan's instruction to tag every entry unconditionally would have returned 400 on live lines
+  - [05-05]: promote and demote both roll back the optimistic store write when the PUT fails, rather than refetching.  Cheaper, but a failed write leaves no visible error — only a console line.  Revisit if speakers report notes "jumping back"
+  - [05-05]: Rebuttal checkbox state is deliberately never persisted — "addressed" is a within-segment working state, not a fact about the debate, so a reload clears it
 
 ### Pending Todos
 
-None yet.
+- Run 05-05 Task 3 (the two-browser live verification) and write `05-05-SUMMARY.md` once it passes.  Fold in the open check on issue #69 (PR #58's bonus-time render side effect) and confirmation that a WorkOS-issued speaker now resolves to `speaker` after PR #70 — one live sitting, not three.
 
 ### Blockers/Concerns
 
@@ -140,10 +145,12 @@ None yet.
 - [RESOLVED - 02-02]: Moderator role question resolved — mintToken uses role='moderator' for roomAdmin grant; listening_host/listening_moderator slugs are the role identifiers.
 - [RESOLVED - 02-02]: LD segment schedule definitive — 7 segments, 1920 total speaking seconds (32 min), LD_SEGMENTS in lib/debate/segments.ts is canonical.
 - [02-03 follow-up]: /moderator/* Next.js middleware not yet added — client-side gate only in v1; add before production launch.
-- [03-01 deferred]: Live pipeline verification (Task 4) not yet run — Mux Growth plan required for RTMP ingest.  Also confirm 'reduced' vs 'low' latency_mode once live testing is possible.
+- [03-01 deferred]: Live pipeline verification (Task 4) not yet run — Mux Growth plan required for RTMP ingest.  Also confirm 'reduced' vs 'low' latency_mode once live testing is possible.  The nonprofit discount request went in April 2026 and is still unanswered as of 2026-11-15; this now blocks Phase 5's exit as well, since Task 3 needs a real debate to watch.
+- [05-05 blocking]: Phase 5 cannot be marked complete until 05-05 Task 3 passes.  It needs a speaker, an observer and a moderator across two browsers: promote/demote, drag order surviving a reload, checkboxes clearing on reload, keyboard drag a11y, the selection popup writing a real `source_transcript_entry_id`, the popup absent for observers and moderators, Export PDF unbroken, and a clean console.
+- [#69 open]: The two-browser live check of PR #58 (bonus-time render side effect) was never run — PR #58 merged before manual verification.  Assigned to chrisandrewsedu.
 
 ## Session Continuity
 
-Last session: 2026-04-27
-Stopped at: 05-04-PLAN.md complete; observer notes UI delivered (useUserRole, NoteInput, NoteItem, NotesPanel wired into both layouts)
-Resume file: None — proceed to 05-05 (speaker rebuttal checklist)
+Last session: 2026-11-15
+Stopped at: PR #71 open and green — 05-05 Tasks 1-2 (transcript selection popup, sortable rebuttal checklist) plus a root CLAUDE.md, which this repo was the only EV app without.  PR #70 (client identity fix) merged first as 808226e.
+Resume file: None — next action is the live verification sitting, then `05-05-SUMMARY.md` and Phase 6 planning (Voting and Badges, success criteria written, no plans yet)

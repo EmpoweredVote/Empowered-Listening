@@ -97,6 +97,7 @@ const postBodySchema = z.object({
   content: z.string().trim().min(1).max(2000),
   debateTimeMmss: z.string().regex(/^\d{1,3}:\d{2}$/).nullable(),
   sourceTranscriptEntryId: z.string().uuid().nullable().optional(),
+  addToRebuttal: z.boolean().optional(),
 });
 
 /**
@@ -136,16 +137,35 @@ export async function POST(
     return NextResponse.json({ error: 'Invalid body' }, { status: 400 });
   }
 
-  const { content, debateTimeMmss, sourceTranscriptEntryId } = parsed.data;
+  const { content, debateTimeMmss, sourceTranscriptEntryId, addToRebuttal } = parsed.data;
 
   const pool = getPool();
-  const result = await pool.query<NoteRow>(
-    `INSERT INTO listening.notes
-       (user_id, debate_id, content, debate_time_mmss, source_transcript_entry_id, created_at)
-     VALUES ($1, $2, $3, $4, $5, NOW())
-     RETURNING ${NOTE_COLUMNS}`,
-    [userId, debateId, content, debateTimeMmss ?? null, sourceTranscriptEntryId ?? null],
-  );
+
+  let result: { rows: NoteRow[] };
+
+  if (addToRebuttal) {
+    // Use a CTE to compute the next rebuttal_order atomically
+    result = await pool.query<NoteRow>(
+      `WITH next_order AS (
+         SELECT COALESCE(MAX(rebuttal_order) + 1, 0) AS ord
+         FROM listening.notes
+         WHERE user_id = $1 AND debate_id = $2
+       )
+       INSERT INTO listening.notes
+         (user_id, debate_id, content, debate_time_mmss, source_transcript_entry_id, rebuttal_order, created_at)
+       VALUES ($1, $2, $3, $4, $5, (SELECT ord FROM next_order), NOW())
+       RETURNING ${NOTE_COLUMNS}`,
+      [userId, debateId, content, debateTimeMmss ?? null, sourceTranscriptEntryId ?? null],
+    );
+  } else {
+    result = await pool.query<NoteRow>(
+      `INSERT INTO listening.notes
+         (user_id, debate_id, content, debate_time_mmss, source_transcript_entry_id, created_at)
+       VALUES ($1, $2, $3, $4, $5, NOW())
+       RETURNING ${NOTE_COLUMNS}`,
+      [userId, debateId, content, debateTimeMmss ?? null, sourceTranscriptEntryId ?? null],
+    );
+  }
 
   return NextResponse.json({ note: result.rows[0] }, { status: 201 });
 }

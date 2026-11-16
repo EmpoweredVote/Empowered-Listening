@@ -5,6 +5,7 @@ import { useNotesStore } from '@/store/notesStore';
 import { useUserRole } from '@/hooks/useUserRole';
 import { NoteInput } from './NoteInput';
 import { NoteItem } from './NoteItem';
+import { RebuttalChecklist } from './RebuttalChecklist';
 import type { NoteRow } from '@/store/notesStore';
 
 interface NotesPanelProps {
@@ -23,9 +24,10 @@ interface NotesPanelProps {
  * - Export PDF: fetches with bearer → blob → anchor click
  */
 export function NotesPanel({ debateId }: NotesPanelProps) {
-  const { token, tier, loading } = useUserRole();
+  const { token, tier, loading, userRole } = useUserRole();
   const notes = useNotesStore((s) => s.notes);
   const setNotes = useNotesStore((s) => s.setNotes);
+  const updateNote = useNotesStore((s) => s.updateNote);
 
   const [inputOpen, setInputOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -110,6 +112,38 @@ export function NotesPanel({ debateId }: NotesPanelProps) {
     a.created_at.localeCompare(b.created_at),
   );
 
+  // Speakers get a two-section panel: the rebuttal checklist, then everything
+  // else. Observers and moderators keep the single flat list from Plan 04.
+  const isSpeaker = userRole === 'speaker' && !!token;
+  const otherNotes = isSpeaker
+    ? sortedNotes.filter((n) => n.rebuttal_order === null)
+    : sortedNotes;
+  const rebuttalCount = isSpeaker
+    ? sortedNotes.length - otherNotes.length
+    : 0;
+
+  /** Move a note into the rebuttal checklist, at the end. */
+  async function promoteNote(note: NoteRow) {
+    if (!token) return;
+    const nextOrder = rebuttalCount;
+    updateNote(note.id, { rebuttal_order: nextOrder });
+
+    try {
+      const res = await fetch(`/api/debates/${debateId}/notes/${note.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ rebuttalOrder: nextOrder }),
+      });
+      if (!res.ok) throw new Error(`Promote failed (${res.status})`);
+    } catch (err) {
+      updateNote(note.id, { rebuttal_order: note.rebuttal_order });
+      console.error('[NotesPanel] promote', err);
+    }
+  }
+
   return (
     <div className="flex flex-col h-full bg-slate-950 text-slate-100">
       {/* Header */}
@@ -156,7 +190,33 @@ export function NotesPanel({ debateId }: NotesPanelProps) {
 
       {/* Scrollable notes list */}
       <div className="flex-1 overflow-y-auto px-3 py-2 space-y-2 min-h-0">
-        {sortedNotes.length === 0 ? (
+        {isSpeaker ? (
+          <>
+            <h3 className="px-1 pt-1 text-xs font-semibold uppercase tracking-wide text-amber-400">
+              Rebuttal checklist
+            </h3>
+            <RebuttalChecklist debateId={debateId} token={token!} />
+
+            <h3 className="px-1 pt-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
+              Other notes
+            </h3>
+            {otherNotes.length === 0 ? (
+              <p className="px-1 py-2 text-xs italic text-slate-500">
+                No other notes.{canTakeNotes ? ' Press N to add one.' : ''}
+              </p>
+            ) : (
+              otherNotes.map((note) => (
+                <NoteItem
+                  key={note.id}
+                  note={note}
+                  debateId={debateId}
+                  token={token!}
+                  onPromote={() => void promoteNote(note)}
+                />
+              ))
+            )}
+          </>
+        ) : sortedNotes.length === 0 ? (
           <p className="text-sm text-slate-500 mt-4 text-center">
             No notes yet.{canTakeNotes ? ' Press N or click + Add note to start.' : ''}
           </p>
