@@ -109,13 +109,16 @@ Plans:
   2. Notes default to public; the user can toggle a note to private, and private notes are never returned via API to other users
   3. A speaker's notes view renders as a rebuttal checklist with checkboxes to mark opponent arguments as addressed
   4. A user can export all their notes for a debate as a formatted PDF
-**Plans**: TBD
+**Plans**: 5 plans in 4 waves (05-01 in Wave 1; 05-02 in Wave 2; 05-03, 05-04 in Wave 3; 05-05 in Wave 4)
 
 Plans:
-- [ ] 05-01: Notes data layer (create, read, privacy toggle, auth gate for Connected accounts)
-- [ ] 05-02: Note-taking UI (auto-timestamp, public/private toggle, real-time save)
-- [ ] 05-03: Speaker rebuttal checklist view
-- [ ] 05-04: PDF export
+- [x] 05-01-PLAN.md — Notes data layer: `notes_phase5` migration (rebuttal_order, source_transcript_entry_id, privacy), @react-pdf/renderer and @dnd-kit installed
+- [x] 05-02-PLAN.md — Notes CRUD API (GET/POST/PUT/DELETE + /reorder) behind `requireConnectedTier`, notesStore Zustand store with ephemeral `checkedIds`
+- [x] 05-03-PLAN.md — PDF export route, `alignNotesToTranscript`, DebateNotesPdf document
+- [x] 05-04-PLAN.md — Observer notes UI: useUserRole, NoteInput, NoteItem, NotesPanel wired into both layouts; N keyboard shortcut
+- [x] 05-05-PLAN.md — Speaker rebuttal checklist: TranscriptSelectionPopup, @dnd-kit RebuttalChecklist, promote/demote on NoteItem (Tasks 1-2 shipped; Task 3 live verification outstanding)
+
+**Verification gate**: Task 3 of 05-05 is a two-browser live-debate check (speaker + observer + moderator) covering promote/demote, drag persistence across reload, ephemeral checkbox reset, keyboard drag a11y, the selection popup writing a real `source_transcript_entry_id`, and role gating.  It has not been run, and it is itself blocked by the Mux live-pipeline gate carried over from Phase 3.  **Phase 5 is code-complete, not verified.**
 
 ### Phase 6: Voting and Badges
 **Goal**: Connected and Empowered accounts can vote on Last Speaker, post-debate winner, and next debate topic; all vote submissions are gated by tier, badge, standing, and geographic restrictions
@@ -147,5 +150,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 2. Speaker Room | 7/7 | Complete | 2026-04-22 |
 | 3. Observer Streaming | 5/5 | Functionally complete (03-01 Task 4 deferred — Mux Growth plan) | 2026-04-22 |
 | 4. Transcription | 4/4 | Complete | 2026-04-27 |
-| 5. Notes | 0/4 | Not started | - |
+| 5. Notes | 5/5 | Code complete — 05-05 Task 3 live verification not run | - |
 | 6. Voting and Badges | 0/5 | Not started | - |
