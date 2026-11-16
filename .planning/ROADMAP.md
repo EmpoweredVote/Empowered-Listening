@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 3: Observer Streaming** - Anonymous observers watch the live debate via HLS with segment timeline overlay
 - [x] **Phase 4: Transcription** - Every spoken word is attributed, stored per segment, and visible in near-real-time
 - [ ] **Phase 5: Notes** - Connected accounts take timestamped notes; speakers use rebuttal checklist view
-- [ ] **Phase 6: Voting and Badges** - Connected and Empowered accounts vote on Last Speaker, winner, and next topic; all writes gated by tier and badge checks
+- [ ] **Phase 6: Voting and Badges** - Connected and Empowered accounts vote on Last Speaker, winner, and next topic; all writes gated by tier and badge checks — **DEFERRED 2026-11-15, not yet planned** (see Phase 6 details for the two prerequisites)
 
 ## Phase Details
 
@@ -130,7 +130,16 @@ Plans:
   3. A moderator can propose 2-4 topic options; Connected and Empowered accounts can vote during the designated window; the winner becomes the next debate topic
   4. Any vote attempt by a user who fails JWT verification, tier check, `account_standing` check, required badge check, or geographic restriction is rejected before the write reaches the database
   5. All interactive elements in the voting UI are keyboard-accessible; transcript updates use `aria-live polite`; color is never the sole signal for any state; WCAG AA contrast is met throughout
-**Plans**: TBD
+**Status**: 🔴 **DEFERRED 2026-11-15 — not planned, by decision.**  The scope below is unchanged and still wanted; it is waiting on two prerequisites.
+
+1. **Badges do not exist yet.**  The badge check in VOTE-05 is not a technical detail, it is the premise: the badge is what establishes that everyone speaking and voting is working from the same facts.  Badges live in ev-accounts, not here.  Building the vote machinery with that check stubbed out would either sit unused until badges land, or ship a vote that contradicts the thing the vote was designed to protect.  Geographic restriction is the same shape of "one day, not now" — there is no column for it on `debates`, and nothing to set.
+2. **No second blocker.**  An earlier draft of this note claimed VOTE-01 and VOTE-02 were also blocked on the unverified Mux pipeline.  They are not: `ObserverShell.tsx` resolves `hlsUrl` to null when there is no `mux_playback_id` and the observer page renders with "Stream unavailable." in the video area, with the segment timeline, transcript and notes panels all working.  The audience can vote without watching video.  Badges are the only real prerequisite.
+
+What is *not* blocked: three of VOTE-05's five gate conditions already exist and are proven in the notes routes — JWT verification (`verifyToken`, dual-issuer, 01-04), Connected/Empowered tier (`requireConnectedTier`, 05-02) and `account_standing` (01-04).  Only the badge and geographic clauses are missing.
+
+**Revisit when** badges ship in ev-accounts, or when the live pipeline is verified — whichever comes first, since the second unblocks roughly half the phase on its own.
+
+**Plans**: TBD — none written
 
 Plans:
 - [ ] 06-01: Vote permission gating (JWT, tier, account_standing, badge, geographic restriction)
@@ -151,4 +160,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. Observer Streaming | 5/5 | Functionally complete (03-01 Task 4 deferred — Mux Growth plan) | 2026-04-22 |
 | 4. Transcription | 4/4 | Complete | 2026-04-27 |
 | 5. Notes | 5/5 | Code complete — 05-05 Task 3 live verification not run | - |
-| 6. Voting and Badges | 0/5 | Not started | - |
+| 6. Voting and Badges | 0/5 | **Deferred** — blocked on badges (ev-accounts) + live pipeline | - |
