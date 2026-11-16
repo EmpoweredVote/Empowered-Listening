@@ -8,6 +8,12 @@ interface NoteItemProps {
   note: NoteRow;
   debateId: string;
   token: string;
+  /**
+   * Supplied only for a speaker's non-rebuttal notes; renders a "+ Rebuttal"
+   * button that moves this note into the rebuttal checklist. Absent for
+   * observers and moderators, who have no checklist.
+   */
+  onPromote?: () => void;
 }
 
 /**
@@ -19,7 +25,7 @@ interface NoteItemProps {
  * Delete: window.confirm then DELETE → removeNote(id).
  * Styling: dark slate (bg-slate-900, border-slate-800, text-slate-100).
  */
-export function NoteItem({ note, debateId, token }: NoteItemProps) {
+export function NoteItem({ note, debateId, token, onPromote }: NoteItemProps) {
   const [editing, setEditing] = useState(false);
   const [editValue, setEditValue] = useState(note.content);
   const [saving, setSaving] = useState(false);
@@ -176,6 +182,15 @@ export function NoteItem({ note, debateId, token }: NoteItemProps) {
       {/* Edit + Delete buttons — shown on hover (or focus-within) when not in edit mode */}
       {!editing && (hovered || deleting) && (
         <div className="absolute top-2 right-2 flex gap-1">
+          {onPromote && (
+            <button
+              onClick={onPromote}
+              aria-label="Add note to rebuttal list"
+              className="text-xs px-1.5 py-0.5 rounded bg-slate-700 text-amber-300 hover:bg-slate-600 hover:text-amber-200"
+            >
+              + Rebuttal
+            </button>
+          )}
           <button
             onClick={startEdit}
             aria-label="Edit note"
