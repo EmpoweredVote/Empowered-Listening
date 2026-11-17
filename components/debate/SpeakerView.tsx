@@ -38,8 +38,12 @@ export function SpeakerView() {
 
   if (!isActiveSpeaker) return null;
 
+  // Sits ABOVE the participant grid rather than over it. As a centred overlay
+  // this landed on the middle tile, which the grid lays out as the moderator —
+  // harmless while moderators had no camera, and squarely across their face the
+  // moment they got one. Nothing useful is gained by covering a participant.
   return (
-    <div className="pointer-events-none absolute inset-x-0 top-4 z-10 flex flex-col items-center gap-2">
+    <div className="pointer-events-none flex flex-col items-center gap-2 pt-2">
       <div className="rounded bg-black/80 px-4 py-1 text-sm uppercase tracking-widest text-white">
         {activeMeta.abbreviation} — {activeMeta.displayName}
       </div>

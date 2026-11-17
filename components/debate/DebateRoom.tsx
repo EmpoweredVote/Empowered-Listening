@@ -28,12 +28,12 @@ function InnerRoom({ debateId, speakers, isModerator }: {
   return (
     <div className="relative mx-auto max-w-6xl space-y-4 p-4">
       {isModerator && !waitingComplete && <WaitingRoom speakers={speakers} />}
-      <div className="relative">
-        <ParticipantGrid speakers={speakers} />
-        {/* SpeakerView has its own moderator-guard, so it's safe to render
-            for all participants — it will only show the overlay for active aff/neg speakers. */}
-        <SpeakerView />
-      </div>
+      {/* SpeakerView has its own moderator-guard, so it's safe to render for
+          all participants — it shows only for the active aff/neg speaker.
+          Above the grid, not over it: centred on the grid it covered the
+          middle tile, which is the moderator's. */}
+      <SpeakerView />
+      <ParticipantGrid speakers={speakers} />
       {isModerator && <ModeratorPanel debateId={debateId} />}
 
       {/* The notes panel, transcript and (for speakers) the rebuttal checklist
