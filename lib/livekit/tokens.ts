@@ -24,7 +24,17 @@ export async function mintToken(input: MintTokenInput): Promise<string> {
     room: input.roomName,
     roomJoin: true,
     canSubscribe: true,
-    canPublish: input.role === 'speaker',        // workers cannot publish
+    // Moderators publish too. They run the debate out loud — introducing
+    // segments, calling time, asking the next speaker to begin — and with
+    // canPublish false they could not be heard in their own room at all,
+    // which meant moderating over a separate call while the debate ran.
+    //
+    // Their mic is NOT on the segment schedule: applySegmentMicPermissions
+    // touches only the two speakers, and useMicAutoPublish returns early for a
+    // moderator. So nothing contends with the manual control on their tile.
+    //
+    // Workers never publish — they only listen, for transcription.
+    canPublish: input.role !== 'worker',
     canPublishData: input.role !== 'worker',    // workers don't send data messages
     roomAdmin: input.role === 'moderator',       // workers have no admin rights
   };

@@ -1,7 +1,7 @@
 import type { RemoteTrack, AudioStream as AudioStreamType } from '@livekit/rtc-node';
 import { env } from '@/lib/env';
 import { pool } from '@/lib/db/pool';
-import { getSupabaseAdmin } from '@/lib/supabase/admin';
+import { sendBroadcast } from '@/lib/supabase/broadcast';
 import { computeDebateTimeMmss } from './debate-time';
 
 const UNAVAILABLE_THRESHOLD = 0.10;
@@ -119,29 +119,30 @@ export class DeepgramLiveConnection {
   private async broadcastFinal(text: string, spokenAt: Date): Promise<void> {
     const debateTimeMmss = computeDebateTimeMmss(this.debateActualStart, spokenAt);
     try {
-      const supabase = getSupabaseAdmin();
-      const channel = supabase.channel(`transcript-${this.debateId}`);
-      await channel.send({
-        type: 'broadcast',
-        event: 'final',
-        payload: { speakerId: this.speakerId, text, spokenAt: spokenAt.toISOString(), debateTimeMmss },
-      });
-      await supabase.removeChannel(channel);
+      await sendBroadcast([
+        {
+          topic: `transcript-${this.debateId}`,
+          event: 'final',
+          payload: { speakerId: this.speakerId, text, spokenAt: spokenAt.toISOString(), debateTimeMmss },
+        },
+      ]);
     } catch (err) {
+      // The row is already in the database; only the live push is lost, and the
+      // next page load will show it. Not worth retrying — more speech has
+      // arrived by the time a retry would land.
       console.error('[deepgram] broadcastFinal failed:', err);
     }
   }
 
   private async broadcastInterim(text: string): Promise<void> {
     try {
-      const supabase = getSupabaseAdmin();
-      const channel = supabase.channel(`transcript-${this.debateId}`);
-      await channel.send({
-        type: 'broadcast',
-        event: 'interim',
-        payload: { speakerId: this.speakerId, text },
-      });
-      await supabase.removeChannel(channel);
+      await sendBroadcast([
+        {
+          topic: `transcript-${this.debateId}`,
+          event: 'interim',
+          payload: { speakerId: this.speakerId, text },
+        },
+      ]);
     } catch (err) {
       console.error('[deepgram] broadcastInterim failed:', err);
     }
