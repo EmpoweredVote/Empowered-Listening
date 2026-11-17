@@ -8,7 +8,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "tokens": "node scripts/generate-theme-tokens.mjs",
+    "tokens:check": "node scripts/generate-theme-tokens.mjs --check"
   },
   "dependencies": {
     "@deepgram/sdk": "^5.20.0",

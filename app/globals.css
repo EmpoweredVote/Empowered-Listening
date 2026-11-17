@@ -18,23 +18,68 @@
 /*
  * EV-UI Design Tokens for Tailwind v4
  *
- * Source: @empoweredvote/ev-ui/src/tokens.js
- * The ev-ui tailwind-preset exports a Tailwind v3 config object.
- * For Tailwind v4 (CSS-first), tokens are defined here via @theme.
- * Values sourced directly from @empoweredvote/ev-ui@0.4.4.
+ * ev-ui publishes no stylesheet — `./tailwind-preset` is a Tailwind v3 config
+ * object and `./tokens` is ESM — so under v4 the tokens have to be emitted as
+ * custom properties inside @theme.  The block below is GENERATED from the
+ * installed ev-ui package rather than copied by hand, which is how the previous
+ * version of this file silently fell out of date.
+ *
+ *   npm run tokens         regenerate
+ *   npm run tokens:check   fail if this file and ev-ui disagree (runs in CI)
  */
 
 @theme {
-  /* Manrope font — loaded via next/font/google in layout.tsx */
+  /* Manrope font — loaded via next/font/google in layout.tsx.
+     Hand-written: ev-ui's `fonts` are family stacks, not the next/font
+     variable this app actually binds. */
   --font-family-manrope: var(--font-manrope), system-ui, sans-serif;
 
-  /* EV brand colors (canonical values from ev-ui/src/tokens.js) */
-  --color-ev-coral:      #FF5740;
+/* ev-ui:tokens:start */
+  /*
+   * GENERATED — do not edit by hand.
+   *
+   * Source: @empoweredvote/ev-ui@0.16.0 (`./tokens`)
+   * Regenerate: npm run tokens     Verify: npm run tokens:check
+   *
+   * Colours only, all prefixed --color-ev-*. Spacing, font sizes, radii and
+   * breakpoints are deliberately NOT emitted: they would land on Tailwind
+   * v4's own --spacing, --text, --radius and --breakpoint variables and
+   * replace the core scales. See scripts/generate-theme-tokens.mjs.
+   *
+   * (Those names are written bare above on purpose: a trailing star followed
+   * by a slash would close this comment early and break the stylesheet.)
+   */
+
+  /* Brand and semantic colours — ev-ui 0.16.0 `colors` */
+  --color-ev-coral: #FF5740;
   --color-ev-muted-blue: #00657C;
   --color-ev-light-blue: #59B0C4;
-  --color-ev-yellow:     #FED12E;
+  --color-ev-yellow: #FED12E;
+  --color-ev-yellow-light: #FEF3C7;
+  --color-ev-yellow-dark: #D0A301;
+  --color-ev-black: #1C1C1C;
+  --color-ev-white: #FFFFFF;
+  --color-ev-teal: #00657C;
+  --color-ev-teal-dark: #003E4D;
+  --color-ev-teal-light: #59B0C4;
+  --color-ev-bg-light: #F0F8FA;
+  --color-ev-bg-white: #FFFFFF;
+  --color-ev-text-primary: #00657C;
+  --color-ev-text-secondary: #4A5568;
+  --color-ev-text-muted: #718096;
+  --color-ev-text-white: #FFFFFF;
+  --color-ev-border-light: #E2EBEF;
+  --color-ev-border-medium: #C9CFD1;
+  --color-ev-error: #EF4444;
+  --color-ev-error-light: #FEF2F2;
+  --color-ev-success: #22C55E;
+  --color-ev-success-light: #F0FDF4;
+  --color-ev-warning: #F59E0B;
+  --color-ev-warning-light: #FFFBEB;
+  --color-ev-info: #3A9BB0;
+  --color-ev-info-light: #F5F9FA;
 
-  /* EV coral scale */
+  /* coral scale */
   --color-ev-coral-050: #FAF6F5;
   --color-ev-coral-100: #F6E6E4;
   --color-ev-coral-200: #F2C6C0;
@@ -47,7 +92,7 @@
   --color-ev-coral-900: #8E1F10;
   --color-ev-coral-950: #6C1E13;
 
-  /* EV teal (muted-blue) scale */
+  /* teal scale */
   --color-ev-teal-050: #F5F9FA;
   --color-ev-teal-100: #E4F3F6;
   --color-ev-teal-200: #C0E8F2;
@@ -60,7 +105,7 @@
   --color-ev-teal-900: #05262E;
   --color-ev-teal-950: #051A1E;
 
-  /* EV skyblue (light-blue) scale */
+  /* skyblue scale */
   --color-ev-skyblue-050: #F6F8F8;
   --color-ev-skyblue-100: #E9F0F1;
   --color-ev-skyblue-200: #CDE0E5;
@@ -73,7 +118,7 @@
   --color-ev-skyblue-900: #264C55;
   --color-ev-skyblue-950: #1E383D;
 
-  /* EV yellow scale */
+  /* yellow scale */
   --color-ev-yellow-050: #FAF9F5;
   --color-ev-yellow-100: #F6F2E4;
   --color-ev-yellow-200: #F1E7C0;
@@ -85,6 +130,222 @@
   --color-ev-yellow-800: #9F7F09;
   --color-ev-yellow-900: #7B640E;
   --color-ev-yellow-950: #5B4B10;
+
+  /* gray scale */
+  --color-ev-gray-050: #F7F7F8;
+  --color-ev-gray-100: #EBEDEF;
+  --color-ev-gray-200: #D3D7DE;
+  --color-ev-gray-300: #B3BBCC;
+  --color-ev-gray-400: #8F9EBC;
+  --color-ev-gray-500: #6B7280;
+  --color-ev-gray-600: #535964;
+  --color-ev-gray-700: #41454E;
+  --color-ev-gray-800: #2F3237;
+  --color-ev-gray-900: #212326;
+  --color-ev-gray-950: #131416;
+
+  /* Pillar colours */
+  --color-ev-pillar-inform-color: #FED12E;
+  --color-ev-pillar-inform-dark: #D0A301;
+  --color-ev-pillar-inform-light: #FAF9F5;
+  --color-ev-pillar-inform-text-color: #7B640E;
+  --color-ev-pillar-inform-dark-mode-color: #FED12E;
+  --color-ev-pillar-inform-dark-mode-dark: #FEE88A;
+  --color-ev-pillar-inform-dark-mode-text-on-accent: #1C1C1C;
+  --color-ev-pillar-empower-color: #FF5740;
+  --color-ev-pillar-empower-dark: #E61B00;
+  --color-ev-pillar-empower-light: #FAF6F5;
+  --color-ev-pillar-empower-text-color: #E61B00;
+  --color-ev-pillar-empower-dark-mode-color: #FF5740;
+  --color-ev-pillar-empower-dark-mode-dark: #F66855;
+  --color-ev-pillar-empower-dark-mode-text-on-accent: #FFFFFF;
+  --color-ev-pillar-connect-color: #00657C;
+  --color-ev-pillar-connect-dark: #003E4D;
+  --color-ev-pillar-connect-light: #F5F9FA;
+  --color-ev-pillar-connect-text-color: #00657C;
+  --color-ev-pillar-connect-dark-mode-color: #3A9BB0;
+  --color-ev-pillar-connect-dark-mode-dark: #59B0C4;
+  --color-ev-pillar-connect-dark-mode-text-on-accent: #FFFFFF;
+
+  /* Semantic layer — light */
+  --color-ev-light-layer-base-background: #F7F7F8;
+  --color-ev-light-layer-base-text: #535964;
+  --color-ev-light-layer-base-icon: #535964;
+  --color-ev-light-layer-base-border: #D3D7DE;
+  --color-ev-light-layer-one-background: #EBEDEF;
+  --color-ev-light-layer-one-text: #41454E;
+  --color-ev-light-layer-one-icon: #41454E;
+  --color-ev-light-layer-one-border: #D3D7DE;
+  --color-ev-light-layer-two-background: #D3D7DE;
+  --color-ev-light-layer-two-text: #2F3237;
+  --color-ev-light-layer-two-icon: #2F3237;
+  --color-ev-light-layer-two-border: #B3BBCC;
+  --color-ev-light-heading-text: #2F3237;
+  --color-ev-light-divider: #D3D7DE;
+  --color-ev-light-link-default: #00657C;
+  --color-ev-light-link-hovered: #003E4D;
+  --color-ev-light-link-focused: #003E4D;
+  --color-ev-light-link-pressed: #003E4D;
+  --color-ev-light-input-background: #F7F7F8;
+  --color-ev-light-input-text: #41454E;
+  --color-ev-light-input-border: #41454E;
+  --color-ev-light-input-icon: #6B7280;
+  --color-ev-light-button-primary-background-default: #005366;
+  --color-ev-light-button-primary-background-hovered: #003E4D;
+  --color-ev-light-button-primary-background-pressed: #03303A;
+  --color-ev-light-button-primary-background-focused: #005366;
+  --color-ev-light-button-primary-background-disabled: #D3D7DE;
+  --color-ev-light-button-primary-text-default: #FFFFFF;
+  --color-ev-light-button-primary-text-disabled: #8F9EBC;
+  --color-ev-light-button-secondary-background-default: #F7F7F8;
+  --color-ev-light-button-secondary-background-hovered: #EBEDEF;
+  --color-ev-light-button-secondary-background-pressed: #D3D7DE;
+  --color-ev-light-button-secondary-background-focused: #EBEDEF;
+  --color-ev-light-button-secondary-background-disabled: #F7F7F8;
+  --color-ev-light-button-secondary-text-default: #003E4D;
+  --color-ev-light-button-secondary-text-disabled: #8F9EBC;
+  --color-ev-light-button-secondary-border-default: #003E4D;
+  --color-ev-light-button-secondary-border-disabled: #D3D7DE;
+  --color-ev-light-badge-background: #EBEDEF;
+  --color-ev-light-badge-text: #41454E;
+  --color-ev-light-badge-border: #D3D7DE;
+  --color-ev-light-tooltip-background: #2F3237;
+  --color-ev-light-tooltip-text: #EBEDEF;
+  --color-ev-light-overlay: rgba(19, 20, 22, 0.5);
+  --color-ev-light-skeleton-from: #EBEDEF;
+  --color-ev-light-skeleton-to: #D3D7DE;
+
+  /* Semantic layer — dark */
+  --color-ev-dark-layer-base-background: #131416;
+  --color-ev-dark-layer-base-text: #B3BBCC;
+  --color-ev-dark-layer-base-icon: #B3BBCC;
+  --color-ev-dark-layer-base-border: #41454E;
+  --color-ev-dark-layer-one-background: #2F3237;
+  --color-ev-dark-layer-one-text: #D3D7DE;
+  --color-ev-dark-layer-one-icon: #D3D7DE;
+  --color-ev-dark-layer-one-border: #41454E;
+  --color-ev-dark-layer-two-background: #41454E;
+  --color-ev-dark-layer-two-text: #EBEDEF;
+  --color-ev-dark-layer-two-icon: #EBEDEF;
+  --color-ev-dark-layer-two-border: #535964;
+  --color-ev-dark-heading-text: #EBEDEF;
+  --color-ev-dark-divider: #41454E;
+  --color-ev-dark-link-default: #59B0C4;
+  --color-ev-dark-link-hovered: #7FBECC;
+  --color-ev-dark-link-focused: #7FBECC;
+  --color-ev-dark-link-pressed: #3A9BB0;
+  --color-ev-dark-input-background: #1E2024;
+  --color-ev-dark-input-text: #D3D7DE;
+  --color-ev-dark-input-border: #6B7280;
+  --color-ev-dark-input-icon: #B3BBCC;
+  --color-ev-dark-button-primary-background-default: #005366;
+  --color-ev-dark-button-primary-background-hovered: #327E8F;
+  --color-ev-dark-button-primary-background-pressed: #003E4D;
+  --color-ev-dark-button-primary-background-focused: #005366;
+  --color-ev-dark-button-primary-background-disabled: #2F3237;
+  --color-ev-dark-button-primary-text-default: #FFFFFF;
+  --color-ev-dark-button-primary-text-disabled: #535964;
+  --color-ev-dark-button-secondary-background-default: #131416;
+  --color-ev-dark-button-secondary-background-hovered: #2F3237;
+  --color-ev-dark-button-secondary-background-pressed: #41454E;
+  --color-ev-dark-button-secondary-background-focused: #2F3237;
+  --color-ev-dark-button-secondary-background-disabled: #131416;
+  --color-ev-dark-button-secondary-text-default: #59B0C4;
+  --color-ev-dark-button-secondary-text-disabled: #535964;
+  --color-ev-dark-button-secondary-border-default: #59B0C4;
+  --color-ev-dark-button-secondary-border-disabled: #41454E;
+  --color-ev-dark-badge-background: #41454E;
+  --color-ev-dark-badge-text: #EBEDEF;
+  --color-ev-dark-badge-border: #535964;
+  --color-ev-dark-tooltip-background: #EBEDEF;
+  --color-ev-dark-tooltip-text: #2F3237;
+  --color-ev-dark-overlay: rgba(19, 20, 22, 0.75);
+  --color-ev-dark-skeleton-from: #2F3237;
+  --color-ev-dark-skeleton-to: #41454E;
+
+  /* Tier colours */
+  --color-ev-tier-federal-bg: #FFFFFF;
+  --color-ev-tier-federal-accent: #003E4D;
+  --color-ev-tier-federal-text: #003E4D;
+  --color-ev-tier-state-bg: #F7FBFC;
+  --color-ev-tier-state-accent: #00657C;
+  --color-ev-tier-state-text: #00657C;
+  --color-ev-tier-local-bg: #EDF6F8;
+  --color-ev-tier-local-accent: #C0E8F2;
+  --color-ev-tier-local-text: #005366;
+
+  /* Data-viz palette — positional, by series index */
+  /* 1: Teal */
+  --color-ev-dataviz-1: #00657C;
+  --color-ev-dataviz-1-1: #C0E8F2;
+  --color-ev-dataviz-1-2: #55D9F6;
+  --color-ev-dataviz-1-3: #3AABB8;
+  --color-ev-dataviz-1-4: #00657C;
+  --color-ev-dataviz-1-5: #003E4D;
+  /* 2: Sky Blue */
+  --color-ev-dataviz-2: #59B0C4;
+  --color-ev-dataviz-2-1: #CDE0E5;
+  --color-ev-dataviz-2-2: #A7CFD8;
+  --color-ev-dataviz-2-3: #7FBECC;
+  --color-ev-dataviz-2-4: #59B0C4;
+  --color-ev-dataviz-2-5: #327E8F;
+  /* 3: Ocean */
+  --color-ev-dataviz-3: #2563A0;
+  --color-ev-dataviz-3-1: #CDDCED;
+  --color-ev-dataviz-3-2: #7BADD4;
+  --color-ev-dataviz-3-3: #4D8FC2;
+  --color-ev-dataviz-3-4: #2563A0;
+  --color-ev-dataviz-3-5: #193F68;
+  /* 4: Coral */
+  --color-ev-dataviz-4: #FF5740;
+  --color-ev-dataviz-4-1: #F6E6E4;
+  --color-ev-dataviz-4-2: #F2988C;
+  --color-ev-dataviz-4-3: #F66855;
+  --color-ev-dataviz-4-4: #FF5740;
+  --color-ev-dataviz-4-5: #B31D09;
+  /* 5: Terracotta */
+  --color-ev-dataviz-5: #C2674A;
+  --color-ev-dataviz-5-1: #F0DCD4;
+  --color-ev-dataviz-5-2: #D9A48E;
+  --color-ev-dataviz-5-3: #CF8568;
+  --color-ev-dataviz-5-4: #C2674A;
+  --color-ev-dataviz-5-5: #7A3D2C;
+  /* 6: Yellow */
+  --color-ev-dataviz-6: #FED12E;
+  --color-ev-dataviz-6-1: #F6F2E4;
+  --color-ev-dataviz-6-2: #F2DC8D;
+  --color-ev-dataviz-6-3: #F5D356;
+  --color-ev-dataviz-6-4: #FED12E;
+  --color-ev-dataviz-6-5: #9F7F09;
+  /* 7: Honey */
+  --color-ev-dataviz-7: #D4940B;
+  --color-ev-dataviz-7-1: #F5EACE;
+  --color-ev-dataviz-7-2: #E8C563;
+  --color-ev-dataviz-7-3: #DCA930;
+  --color-ev-dataviz-7-4: #D4940B;
+  --color-ev-dataviz-7-5: #805A06;
+  /* 8: Sage */
+  --color-ev-dataviz-8: #5A9A6E;
+  --color-ev-dataviz-8-1: #D4E8DA;
+  --color-ev-dataviz-8-2: #9ACBAA;
+  --color-ev-dataviz-8-3: #74B589;
+  --color-ev-dataviz-8-4: #5A9A6E;
+  --color-ev-dataviz-8-5: #376043;
+  /* 9: Dusk */
+  --color-ev-dataviz-9: #7C6B9E;
+  --color-ev-dataviz-9-1: #E4DFF0;
+  --color-ev-dataviz-9-2: #B5A8CF;
+  --color-ev-dataviz-9-3: #9788B8;
+  --color-ev-dataviz-9-4: #7C6B9E;
+  --color-ev-dataviz-9-5: #4D4263;
+  /* 10: Stone */
+  --color-ev-dataviz-10: #6B7280;
+  --color-ev-dataviz-10-1: #EBEDEF;
+  --color-ev-dataviz-10-2: #B3BBCC;
+  --color-ev-dataviz-10-3: #8F9EBC;
+  --color-ev-dataviz-10-4: #6B7280;
+  --color-ev-dataviz-10-5: #41454E;
+/* ev-ui:tokens:end */
 }
 
 @keyframes lk-timer-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
