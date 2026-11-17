@@ -7,6 +7,12 @@ import { getPool } from '@/lib/db/pool';
 import { activeWorkers } from '@/lib/transcription/registry';
 import { TranscriptionWorker } from '@/lib/transcription/worker';
 
+// Required: this route reaches pg — directly and now also through the
+// moderator gate, which reads the role from public.user_roles. Without it the
+// route can be built for the edge runtime, where pg's native bindings fail.
+export const runtime = 'nodejs';
+
+
 const bodySchema = z.object({
   action: z.enum(['start', 'end', 'repeat']),
 });
