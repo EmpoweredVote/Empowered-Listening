@@ -24,7 +24,12 @@ export function ParticipantGrid({ speakers }: ParticipantGridProps) {
   return (
     <div className="grid grid-cols-3 gap-4 p-4">
       {ordered.map(s => (
-        <SpeakerTile key={s.id} expectedIdentity={s.livekitIdentity} displayName={s.displayName} />
+        <SpeakerTile
+          key={s.id}
+          expectedIdentity={s.livekitIdentity}
+          displayName={s.displayName}
+          role={s.role}
+        />
       ))}
     </div>
   );
