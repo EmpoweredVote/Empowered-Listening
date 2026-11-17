@@ -216,7 +216,19 @@ const generated = [
   END,
 ].join('\n');
 
-const css = await readFile(CSS_PATH, 'utf8');
+// Line endings: the repo stores LF, but git hands Windows checkouts CRLF. The
+// block built above joins with \n, so comparing it against a CRLF file never
+// matched and `--check` reported "out of date" on every Windows run, for ever,
+// against a file nobody had touched. CI runs on Ubuntu, so it passed there and
+// the bug stayed invisible.
+//
+// Normalise to LF for all of the work, then write back in whatever style the
+// file already used — so this neither fights git's conversion nor rewrites
+// every line of a file it was asked only to check.
+const raw = await readFile(CSS_PATH, 'utf8');
+const usesCRLF = raw.includes('\r\n');
+const css = usesCRLF ? raw.replace(/\r\n/g, '\n') : raw;
+
 const startAt = css.indexOf(START);
 const endAt = css.indexOf(END);
 
@@ -245,7 +257,7 @@ if (checkOnly) {
   process.exit(1);
 }
 
-await writeFile(CSS_PATH, next, 'utf8');
+await writeFile(CSS_PATH, usesCRLF ? next.replace(/\n/g, '\r\n') : next, 'utf8');
 console.log(
   `[tokens] Wrote ${lines.filter((l) => l.startsWith('  --color-')).length} colour tokens ` +
     `from ev-ui@${EV_UI_VERSION} into app/globals.css.`,
