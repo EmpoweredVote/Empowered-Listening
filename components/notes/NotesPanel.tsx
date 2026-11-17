@@ -118,14 +118,20 @@ export function NotesPanel({ debateId }: NotesPanelProps) {
   const otherNotes = isSpeaker
     ? sortedNotes.filter((n) => n.rebuttal_order === null)
     : sortedNotes;
-  const rebuttalCount = isSpeaker
-    ? sortedNotes.length - otherNotes.length
-    : 0;
-
   /** Move a note into the rebuttal checklist, at the end. */
   async function promoteNote(note: NoteRow) {
     if (!token) return;
-    const nextOrder = rebuttalCount;
+    // MAX + 1, not the count.  Demoting an item leaves a gap in the sequence
+    // — [0,1,2] minus the middle is [0,2], count 2 — so counting would hand
+    // the new item an index another note still holds, and the two would sort
+    // against each other arbitrarily.  The POST route computes the same value
+    // server-side (COALESCE(MAX(rebuttal_order) + 1, 0)) for transcript picks;
+    // this keeps the two paths agreeing.
+    const nextOrder =
+      sortedNotes.reduce(
+        (max, n) => (n.rebuttal_order !== null && n.rebuttal_order > max ? n.rebuttal_order : max),
+        -1,
+      ) + 1;
     updateNote(note.id, { rebuttal_order: nextOrder });
 
     try {
