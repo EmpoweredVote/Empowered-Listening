@@ -3,6 +3,12 @@ import { z } from 'zod';
 import { createDebate } from '@/lib/debate/create';
 import { requireModeratorFromRequest, ModeratorGateError } from '@/lib/auth/require-moderator';
 
+// Required: this route reaches pg — directly and now also through the
+// moderator gate, which reads the role from public.user_roles. Without it the
+// route can be built for the edge runtime, where pg's native bindings fail.
+export const runtime = 'nodejs';
+
+
 const bodySchema = z.object({
   topic: z.string().trim().min(3).max(200),
   moderatorDisplayName: z.string().trim().min(1).max(80),
