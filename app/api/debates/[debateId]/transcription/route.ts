@@ -34,7 +34,14 @@ export async function POST(
     await requireModeratorFromRequest(req);
   } catch (e) {
     if (e instanceof ModeratorGateError) return NextResponse.json({ error: e.message }, { status: e.status });
-    return NextResponse.json({ error: 'Auth failed' }, { status: 401 });
+    // Not a ModeratorGateError means verifyToken itself threw — unknown
+    // issuer, unreachable JWKS, missing external_id. Surfaced rather than
+    // swallowed; see app/api/debates/route.ts for why.
+    console.error('[transcription] token verification failed:', e);
+    return NextResponse.json(
+      { error: 'Auth failed', reason: e instanceof Error ? e.message : String(e) },
+      { status: 401 },
+    );
   }
 
   const parsed = bodySchema.safeParse(await req.json().catch(() => null));

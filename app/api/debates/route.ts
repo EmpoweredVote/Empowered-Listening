@@ -18,7 +18,19 @@ export async function POST(req: NextRequest) {
     if (err instanceof ModeratorGateError) {
       return NextResponse.json({ error: err.message }, { status: err.status });
     }
-    return NextResponse.json({ error: 'Auth failed' }, { status: 401 });
+    // Everything that is NOT a ModeratorGateError comes out of verifyToken, and
+    // every one of those used to arrive here as a bare "Auth failed" with
+    // nothing written to the log: unknown issuer, a WorkOS token with no
+    // external_id or role=authenticated, an unreachable JWKS endpoint, an
+    // expired signature.  That left a moderator staring at three words with no
+    // way to tell a missing env var from a bad token.  WORKOS_ISSUER and
+    // WORKOS_JWKS_URL are deliberately outside the fail-fast env schema, so a
+    // typo in either surfaces exactly here and nowhere else.
+    console.error('[debates] token verification failed:', err);
+    return NextResponse.json(
+      { error: 'Auth failed', reason: err instanceof Error ? err.message : String(err) },
+      { status: 401 },
+    );
   }
 
   const rawBody = await req.json().catch(() => null);
