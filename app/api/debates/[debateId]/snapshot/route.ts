@@ -29,5 +29,9 @@ export async function GET(
     debate: debate.rows[0],
     segments: segments.rows,
     speakers: speakers.rows,
+    // Segment deadlines in this payload are on the server's clock. Clients
+    // time this response to measure their own offset against it, rather than
+    // counting down from a browser clock nobody has calibrated.
+    server_now: new Date().toISOString(),
   });
 }
