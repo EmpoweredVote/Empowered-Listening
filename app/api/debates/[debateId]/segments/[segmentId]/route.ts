@@ -79,11 +79,15 @@ export async function POST(
       const debateRow = debateRows[0];
 
       if (debateRow && !debateRow.livekit_egress_id) {
+        // Tracked outside the try so the catch can release a Mux stream that
+        // was created before egress failed.
+        let createdMuxStreamId: string | null = null;
         try {
           const { createMuxLiveStream } = await import('@/lib/mux/client');
           const { startDebateEgress } = await import('@/lib/livekit/egress-service');
 
           const { muxStreamId, muxStreamKey, muxPlaybackId } = await createMuxLiveStream();
+          createdMuxStreamId = muxStreamId;
 
           await pool.query(
             `UPDATE listening.debates
@@ -101,7 +105,36 @@ export async function POST(
             [egressId, debateId],
           );
         } catch (egressErr) {
-          console.error('[egress] bootstrap failed:', egressErr);
+          // Video is not going to happen for this debate — most likely the
+          // LiveKit transcode allowance is spent, which blocks egress while
+          // leaving rooms, audio and transcription working normally.
+          //
+          // The debate still runs. What must not happen is observers being
+          // handed a player pointed at a Mux stream nothing will ever push
+          // to: that shows a dead video frame instead of the transcript-only
+          // placeholder the page already knows how to render. So the playback
+          // id is cleared, and the Mux stream released rather than orphaned.
+          console.error('[egress] bootstrap failed — debate continues without video:', egressErr);
+
+          if (createdMuxStreamId) {
+            try {
+              const { completeMuxLiveStream } = await import('@/lib/mux/client');
+              await completeMuxLiveStream(createdMuxStreamId);
+            } catch (cleanupErr) {
+              console.error('[egress] releasing the unused Mux stream failed:', cleanupErr);
+            }
+          }
+
+          try {
+            await pool.query(
+              `UPDATE listening.debates
+               SET mux_stream_id = NULL, mux_stream_key = NULL, mux_playback_id = NULL
+               WHERE id = $1 AND livekit_egress_id IS NULL`,
+              [debateId],
+            );
+          } catch (clearErr) {
+            console.error('[egress] clearing the dead playback id failed:', clearErr);
+          }
         }
       }
 

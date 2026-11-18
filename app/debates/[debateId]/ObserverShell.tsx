@@ -78,13 +78,18 @@ export default function ObserverShell({
       : null;
 
   // Text shown in the video area when there is nothing to play.
+  //
+  // A live debate with no playback id is not an error the viewer can act on —
+  // it means this debate is running without video (egress unavailable). The
+  // transcript beside it is still live, so say that rather than "unavailable",
+  // which reads as though the whole page has failed.
   const videoPlaceholder =
     stream.status === 'scheduled' ? 'Waiting for debate to start…'
       : stream.status === 'completed'
         ? stream.recording_pending
           ? 'The recording is processing. It will appear here shortly.'
           : 'No recording is available for this debate.'
-        : 'Stream unavailable.';
+        : 'This debate is running without video. The live transcript is updating below.';
 
   return (
     <>
