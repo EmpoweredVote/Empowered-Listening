@@ -2,6 +2,7 @@
 
 import { create } from 'zustand';
 import type { LDSegmentType } from '@/lib/debate/segments';
+import { serverNow } from '@/lib/debate/clock';
 
 export interface DebateSegmentRow {
   id: string;
@@ -73,12 +74,16 @@ export const useDebateStore = create<DebateStoreState>((set, get) => ({
   computeRemainingMs() {
     const active = get().getActiveSegment();
     if (!active || !active.end_time || active.status !== 'active') return 0;
-    return Math.max(0, new Date(active.end_time).getTime() - Date.now());
+    // serverNow(), never Date.now(): end_time is written on the server's
+    // clock, so a browser whose clock is wrong counts down to the wrong
+    // moment — and this value also drives auto-expire, so it decides when a
+    // speaker is cut off, not just what they are shown.
+    return Math.max(0, new Date(active.end_time).getTime() - serverNow());
   },
   computePrepRemainingMs() {
     const active = get().getActiveSegment();
     if (!active || !active.prep_time_end_time || active.status !== 'paused') return 0;
-    return Math.max(0, new Date(active.prep_time_end_time).getTime() - Date.now());
+    return Math.max(0, new Date(active.prep_time_end_time).getTime() - serverNow());
   },
 
   setInitialSnapshot({ debate, segments, speakers }) {

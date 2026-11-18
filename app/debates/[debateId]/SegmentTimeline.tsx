@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useDebateStore } from '@/store/debateStore';
 import { useShallow } from 'zustand/react/shallow';
 import { LD_SEGMENTS, getSegmentBySequence, type LDSegmentType } from '@/lib/debate/segments';
+import { serverNow } from '@/lib/debate/clock';
 
 // Map segment type to abbreviation from the canonical LD_SEGMENTS list
 const SEGMENT_ABBREV: Record<LDSegmentType, string> = Object.fromEntries(
@@ -43,10 +44,11 @@ export function SegmentTimeline({ className = '', variant = 'desktop' }: Segment
   const speakers = useDebateStore(s => s.speakers);
 
   // 1-Hz tick drives progress fill on the active segment.  "now" lives in state
-  // so render stays pure (no Date.now() in render).
-  const [now, setNow] = useState(() => Date.now());
+  // so render stays pure (no clock read in render).  serverNow() so the fill
+  // tracks the same deadline the speakers' timers do.
+  const [now, setNow] = useState(() => serverNow());
   useEffect(() => {
-    const iv = setInterval(() => setNow(Date.now()), 1000);
+    const iv = setInterval(() => setNow(serverNow()), 1000);
     return () => clearInterval(iv);
   }, []);
 

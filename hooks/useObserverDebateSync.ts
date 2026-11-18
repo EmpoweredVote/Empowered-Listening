@@ -3,11 +3,14 @@
 import { useEffect } from 'react';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { useDebateStore, type DebateRow, type DebateSegmentRow, type DebateSpeakerRow } from '@/store/debateStore';
+import { recordServerTime } from '@/lib/debate/clock';
 
 interface Snapshot {
   debate: DebateRow;
   segments: DebateSegmentRow[];
   speakers: DebateSpeakerRow[];
+  /** The server's clock at the moment it answered. Absent on older deploys. */
+  server_now?: string;
 }
 
 /**
@@ -36,15 +39,25 @@ export function useObserverDebateSync(debateId: string): void {
 
     async function loadSnapshot() {
       const seq = ++latestRequest;
+      // Doubles as the clock sample — observers watch the same countdown.
+      const requestStartedMs = Date.now();
       try {
         const res = await fetch(`/api/debates/${debateId}/observer-snapshot`, {
           cache: 'no-store',
         });
+        const responseReceivedMs = Date.now();
         if (!res.ok) {
           const body = await res.text().catch(() => '');
           throw new Error(`Observer snapshot fetch failed (${res.status}): ${body || res.statusText}`);
         }
         const snapshot = (await res.json()) as Snapshot;
+        if (snapshot.server_now) {
+          recordServerTime({
+            requestStartedMs,
+            responseReceivedMs,
+            serverNowMs: new Date(snapshot.server_now).getTime(),
+          });
+        }
         if (cancelled || seq !== latestRequest) return;
         useDebateStore.getState().setInitialSnapshot(snapshot);
       } catch (err: unknown) {

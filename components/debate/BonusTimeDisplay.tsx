@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useDebateStore } from '@/store/debateStore';
+import { serverNow } from '@/lib/debate/clock';
 
 interface BonusTimeDisplayProps {
   debateId: string;
@@ -11,15 +12,18 @@ interface BonusTimeDisplayProps {
 export function BonusTimeDisplay({ debateId, className = '' }: BonusTimeDisplayProps) {
   const active = useDebateStore(s => s.getActiveSegment());
   const speakers = useDebateStore(s => s.speakers);
-  // 200ms tick. "now" lives in state so render stays pure (no Date.now() in render).
-  const [now, setNow] = useState(() => Date.now());
+  // 200ms tick. "now" lives in state so render stays pure (no clock read in
+  // render). serverNow() rather than Date.now(): this value is compared with
+  // end_time from the server, and it decides when bonus time is exhausted and
+  // the segment ends — a skewed browser clock would end a speaker early.
+  const [now, setNow] = useState(() => serverNow());
 
   // Track which (debateId, segmentId) pair we've already fired end-segment for
   // so we don't fire twice (React StrictMode or re-render bursts).
   const firedRef = useRef<string | null>(null);
 
   useEffect(() => {
-    const iv = setInterval(() => setNow(Date.now()), 200);
+    const iv = setInterval(() => setNow(serverNow()), 200);
     return () => clearInterval(iv);
   }, []);
 

@@ -54,6 +54,9 @@ export async function GET(
     debate: debate.rows[0],
     segments: segments.rows,
     speakers: speakers.rows,
+    // See the participant snapshot route: clients time this to correct their
+    // own clock, so every surface counts the same segment down together.
+    server_now: new Date().toISOString(),
   });
   res.headers.set('Cache-Control', 'no-store');
   return res;
