@@ -95,10 +95,15 @@ fails at verify time, not at boot.
 
 ## Known gaps — do not mistake these for bugs
 
-- 🔴 **The live Mux pipeline has never been verified.** The free plan blocks RTMP ingest, so
-  Phase 3's Task 4 was deferred pending a Growth plan (nonprofit discount requested April 2026).
-  Egress → RTMP → HLS is written and unproven. Also still open: whether `latency_mode` should be
-  `reduced` or `low`.
+- ✅ **The live Mux pipeline is verified** (2026-11-17). LiveKit egress → RTMP → Mux → HLS
+  works end to end: Mux reported `active`, and `stream.mux.com/<playback_id>.m3u8` served four
+  renditions up to 720p. The free plan was never the blocker — this note previously claimed it
+  was. Still open: whether `latency_mode` should be `reduced` or `low`.
+- 🔴 **An egress outlives its debate unless something stops it.** LiveKit will happily keep
+  compositing an empty room and billing for it; one ran 6h18m here. `teardownDebateMedia`
+  (`lib/debate/teardown.ts`) is the only correct way to release egress, the Mux stream and the
+  transcription worker — call it from any new path that ends a debate, rather than stopping one
+  of the three inline. `sweepOrphanedEgress` is the backstop, and runs whenever a segment starts.
 - **There is no server-side segment auto-expire.** A client hook drives it today.
 - **The bonus pool is not persisted.** It lives in memory for the life of the segment.
 - **`/moderator/*` has no Next.js middleware gate.** The API is server-side protected on every

@@ -6,6 +6,7 @@ import { applySegmentMicPermissions } from '@/lib/debate/mic-control';
 import { getPool } from '@/lib/db/pool';
 import { activeWorkers } from '@/lib/transcription/registry';
 import { TranscriptionWorker } from '@/lib/transcription/worker';
+import { teardownDebateMedia, sweepOrphanedEgress } from '@/lib/debate/teardown';
 
 // Required: this route reaches pg — directly and now also through the
 // moderator gate, which reads the role from public.user_roles. Without it the
@@ -104,6 +105,17 @@ export async function POST(
         }
       }
 
+      // Opportunistic sweep: every debate that starts cleans up after the last
+      // one. Not awaited — a sweep failure must never stop a segment starting,
+      // and the moderator should not wait on LiveKit's API to begin speaking.
+      //
+      // This bounds the damage without needing a cron (Render schedules live
+      // in ev-infra, not this repo). It is a backstop, not the fix: the fix is
+      // that every ending now calls teardownDebateMedia.
+      void sweepOrphanedEgress().catch(err =>
+        console.error('[teardown] opportunistic sweep failed:', err),
+      );
+
       // ---- Phase 04-02: bootstrap transcription worker on first-segment start ----
       if (!activeWorkers.has(debateId)) {
         try {
@@ -125,41 +137,17 @@ export async function POST(
       const segment = await endSegment({ debateId, segmentId, moderatorUserId });
 
       // ---- Phase 03-01: shut down egress + finalize Mux on last-segment end ----
-      const { rows: statusRows } = await pool.query<{
-        status: string;
-        livekit_egress_id: string | null;
-        mux_stream_id: string | null;
-      }>(
-        `SELECT status, livekit_egress_id, mux_stream_id
-         FROM listening.debates WHERE id = $1`,
+      const { rows: statusRows } = await pool.query<{ status: string }>(
+        `SELECT status FROM listening.debates WHERE id = $1`,
         [debateId],
       );
-      const dbg = statusRows[0];
 
-      if (dbg && dbg.status === 'completed') {
-        try {
-          if (dbg.livekit_egress_id) {
-            const { stopDebateEgress } = await import('@/lib/livekit/egress-service');
-            await stopDebateEgress(dbg.livekit_egress_id);
-          }
-          if (dbg.mux_stream_id) {
-            const { completeMuxLiveStream } = await import('@/lib/mux/client');
-            await completeMuxLiveStream(dbg.mux_stream_id);
-          }
-          await pool.query(
-            `UPDATE listening.debates SET livekit_egress_id = NULL WHERE id = $1`,
-            [debateId],
-          );
-        } catch (stopErr) {
-          console.error('[egress] stop failed:', stopErr);
-        }
-
-        // ---- Phase 04-02: stop transcription worker on debate completion ----
-        const transcriptionWorker = activeWorkers.get(debateId);
-        if (transcriptionWorker) {
-          transcriptionWorker.stop().catch(err => console.error('[transcription] worker stop failed:', err));
-          activeWorkers.delete(debateId);
-        }
+      if (statusRows[0]?.status === 'completed') {
+        // One teardown path, shared with POST /end and the orphan sweep, so
+        // egress, Mux and the transcription worker can only be released one
+        // way. This used to be inlined here, which is why every other way a
+        // debate could end leaked all three.
+        await teardownDebateMedia(debateId);
       }
 
       // After end, no segment is active — mute both speakers (between-segment state).

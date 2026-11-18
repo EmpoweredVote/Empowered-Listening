@@ -54,3 +54,34 @@ export async function startDebateEgress(
 export async function stopDebateEgress(egressId: string): Promise<void> {
   await getEgressClient().stopEgress(egressId);
 }
+
+export interface ActiveEgress {
+  egressId: string;
+  roomName: string;
+  /** Milliseconds this egress has been running, or 0 when LiveKit reports no start time. */
+  ageMs: number;
+}
+
+/**
+ * Every egress LiveKit currently considers active, across the whole project.
+ *
+ * Deliberately asks LiveKit rather than reading `livekit_egress_id`: the leak
+ * this exists to catch is our column and reality disagreeing, so a sweep built
+ * on the column would be blind to exactly the orphans it is meant to find.
+ */
+export async function listActiveEgress(): Promise<ActiveEgress[]> {
+  const infos = await getEgressClient().listEgress({ active: true });
+  const now = Date.now();
+  return infos
+    .filter(info => info.egressId && info.roomName)
+    .map(info => ({
+      egressId: info.egressId,
+      roomName: info.roomName,
+      // startedAt is an int64 of NANOseconds since the epoch, and is 0 for an
+      // egress that has not started yet. Treat unknown as age 0, which the
+      // sweep's grace period then protects.
+      // Number() on a nanosecond epoch loses sub-microsecond precision, which
+      // is irrelevant against a two-minute grace period.
+      ageMs: info.startedAt ? Math.max(0, now - Number(info.startedAt) / 1e6) : 0,
+    }));
+}
