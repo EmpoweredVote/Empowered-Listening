@@ -21,6 +21,8 @@ export function ModeratorPanel({ debateId }: ModeratorPanelProps) {
   // segment status to 'active' via Realtime — we could sync from store.status but
   // local state is simpler since the moderator is the one driving).
   const [prepSpeakerId, setPrepSpeakerId] = useState<string | null>(null);
+  // Blocks a second click while the end request is in flight.
+  const [ending, setEnding] = useState(false);
   // Shared across both PrepButtons — prevents concurrent prep API calls (double-click / both buttons).
   const prepBusyRef = useRef(false);
 
@@ -50,6 +52,20 @@ export function ModeratorPanel({ debateId }: ModeratorPanelProps) {
     });
     if (!res.ok) alert(`Error: ${await res.text()}`);
     return res;
+  }
+
+  async function endDebate(outcome: 'completed' | 'cancelled') {
+    const verb = outcome === 'completed' ? 'finish' : 'cancel';
+    if (!window.confirm(
+      `This will ${verb} the debate and shut down the video stream, recording and transcription. Continue?`,
+    )) return;
+    setEnding(true);
+    try {
+      const res = await call(`/api/debates/${debateId}/end`, { outcome });
+      if (res.ok) alert('Debate ended. Video stream and transcription released.');
+    } finally {
+      setEnding(false);
+    }
   }
 
   const activeMeta = active ? LD_SEGMENTS.find(m => m.segmentType === active.segment_type) : null;
@@ -118,6 +134,32 @@ export function ModeratorPanel({ debateId }: ModeratorPanelProps) {
               onPrepEnd={() => setPrepSpeakerId(null)}
             />
           )}
+        </div>
+      </div>
+
+      {/* Ending a debate is what releases the LiveKit egress, the Mux stream
+          and the transcription worker. Closing the tab does not, which is how
+          one egress ran for six hours against an empty room. Kept in its own
+          section, away from "End segment", because the two are a bad pair to
+          confuse. */}
+      <div className="mt-4 border-t border-slate-200 pt-4">
+        <h3 className="text-sm font-semibold text-slate-700">End debate</h3>
+        <p className="mt-1 text-xs text-slate-500">
+          Shuts down the video stream, recording and transcription. Closing this tab does not.
+        </p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          <button
+            onClick={() => endDebate('completed')}
+            disabled={ending}
+            className="rounded bg-slate-800 px-3 py-1.5 text-sm text-white disabled:opacity-50">
+            Finish debate
+          </button>
+          <button
+            onClick={() => endDebate('cancelled')}
+            disabled={ending}
+            className="rounded border border-red-300 bg-white px-3 py-1.5 text-sm text-red-700 hover:bg-red-50 disabled:opacity-50">
+            Cancel debate
+          </button>
         </div>
       </div>
     </aside>
