@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { requireModeratorFromRequest, ModeratorGateError } from '@/lib/auth/require-moderator';
 import { getPool } from '@/lib/db/pool';
 import { teardownDebateMedia } from '@/lib/debate/teardown';
+import { notifyDebateChanged } from '@/lib/debate/notify';
 
 // Required: reaches pg directly and through the moderator gate.
 export const runtime = 'nodejs';
@@ -85,6 +86,9 @@ export async function POST(
   );
 
   const teardown = await teardownDebateMedia(debateId);
+
+  // Speakers and observers are still sitting on this debate; tell them it is over.
+  await notifyDebateChanged(debateId, 'debate-end');
 
   return NextResponse.json({ status: rows[0].status, teardown });
 }

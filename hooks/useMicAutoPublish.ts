@@ -36,10 +36,17 @@ export function useMicAutoPublish(): void {
           (meta.activeSpeakerRole === 'affirmative' && localSpeaker.role === 'affirmative') ||
           (meta.activeSpeakerRole === 'negative' && localSpeaker.role === 'negative'));
 
+      // Failures were silently dropped by `void`. A refused microphone is the
+      // single most visible thing that can go wrong for a speaker, and it used
+      // to leave no trace anywhere to find it by.
       if (shouldHaveMic && !localParticipant.isMicrophoneEnabled) {
-        void localParticipant.setMicrophoneEnabled(true);
+        localParticipant.setMicrophoneEnabled(true).catch((err: unknown) => {
+          console.error('[mic] enabling the microphone failed:', err);
+        });
       } else if (!shouldHaveMic && localParticipant.isMicrophoneEnabled) {
-        void localParticipant.setMicrophoneEnabled(false);
+        localParticipant.setMicrophoneEnabled(false).catch((err: unknown) => {
+          console.error('[mic] disabling the microphone failed:', err);
+        });
       }
     };
 

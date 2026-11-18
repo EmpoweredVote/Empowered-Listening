@@ -7,6 +7,7 @@ import { getPool } from '@/lib/db/pool';
 import { activeWorkers } from '@/lib/transcription/registry';
 import { TranscriptionWorker } from '@/lib/transcription/worker';
 import { teardownDebateMedia, sweepOrphanedEgress } from '@/lib/debate/teardown';
+import { notifyDebateChanged } from '@/lib/debate/notify';
 
 // Required: this route reaches pg — directly and now also through the
 // moderator gate, which reads the role from public.user_roles. Without it the
@@ -163,6 +164,12 @@ export async function POST(
         }
       }
 
+      // Sent last, after LiveKit permissions are in place: clients answer this
+      // by re-reading the snapshot and re-evaluating their microphone, and if
+      // it arrived first they would decide against permissions that did not
+      // exist yet.
+      await notifyDebateChanged(debateId, 'segment-start');
+
       return NextResponse.json({ segment });
     }
 
@@ -199,12 +206,16 @@ export async function POST(
           speakerRows.map(s => setMicPermission(debateRows[0].livekit_room_name, s.livekit_identity, false)),
         );
       }
+
+      await notifyDebateChanged(debateId, 'segment-end');
+
       return NextResponse.json({ segment });
     }
 
     // 'repeat' — full reset of the segment timer + clear bonus used; re-apply mic permissions
     const segment = await repeatSegment({ debateId, segmentId, moderatorUserId, durationSeconds });
     await applySegmentMicPermissions(debateId, segmentId);
+    await notifyDebateChanged(debateId, 'segment-repeat');
     return NextResponse.json({ segment });
   } catch (e) {
     const msg = e instanceof Error ? e.message : 'Unknown error';
