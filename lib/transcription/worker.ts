@@ -28,8 +28,12 @@ export class TranscriptionWorker {
       : new Date();
 
     const { rows: speakerRows } = await pool.query<{ livekit_identity: string; id: string }>(
+      // The moderator is transcribed too. They introduce segments, call time
+      // and run cross-examination, and a transcript that drops all of that is
+      // not a record of the debate that happened. Readers who want only the
+      // speakers can filter the moderator out in the transcript panel.
       `SELECT livekit_identity, id FROM listening.debate_speakers
-       WHERE debate_id = $1 AND role IN ('affirmative', 'negative')`,
+       WHERE debate_id = $1 AND role IN ('affirmative', 'negative', 'moderator')`,
       [this.debateId],
     );
     const speakerMap = new Map(speakerRows.map(r => [r.livekit_identity, r.id]));

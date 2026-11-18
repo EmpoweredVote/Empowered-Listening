@@ -68,6 +68,7 @@ export function TranscriptPanel({
 }: TranscriptPanelProps) {
   const [entries, setEntries] = useState<TranscriptEntryRow[]>([]);
   const [interims, setInterims] = useState<Record<string, string>>({}); // speakerId → text
+  const [showModerator, setShowModerator] = useState(true);
   const [isFollowingLive, setIsFollowingLive] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -157,7 +158,16 @@ export function TranscriptPanel({
   let lastSegmentId: string | null = null;
   let lastEntrySpeakerId: string | null = null;
 
-  for (const entry of entries) {
+  // The moderator is in the transcript, because they run the debate out loud
+  // and a record without them is not a record of what happened. But a reader
+  // following the argument often wants only the two speakers, so it can be
+  // turned off. Filtering happens before the merge below, so hiding the
+  // moderator correctly rejoins a speaker's lines either side of them.
+  const visibleEntries = showModerator
+    ? entries
+    : entries.filter(e => speakers[e.speaker_id]?.role !== 'moderator');
+
+  for (const entry of visibleEntries) {
     const seg = findSegmentForEntry(entry.spoken_at, sortedSegments);
     if (seg && seg.id !== lastSegmentId) {
       renderItems.push({ type: 'header', segment: seg });
@@ -180,7 +190,8 @@ export function TranscriptPanel({
   }
 
   const hasInterims = Object.keys(interims).length > 0;
-  const isEmpty = entries.length === 0 && !hasInterims;
+  const isEmpty = visibleEntries.length === 0 && !hasInterims;
+  const moderatorHasSpoken = entries.some(e => speakers[e.speaker_id]?.role === 'moderator');
 
   const scrollToBottom = useCallback(() => {
     isFollowingLiveRef.current = true;
@@ -192,6 +203,25 @@ export function TranscriptPanel({
 
   return (
     <div className="relative h-full flex flex-col">
+      {/* Only offered once the moderator has actually said something — a toggle
+          for an empty category is noise. */}
+      {moderatorHasSpoken && (
+        <div className="shrink-0 flex justify-end border-b border-slate-800 px-3 py-1.5">
+          <button
+            type="button"
+            onClick={() => setShowModerator(v => !v)}
+            aria-pressed={showModerator}
+            className={`rounded-full px-2.5 py-1 text-xs transition ${
+              showModerator
+                ? 'bg-slate-700 text-slate-100 hover:bg-slate-600'
+                : 'bg-slate-900 text-slate-500 hover:text-slate-300'
+            }`}
+          >
+            {showModerator ? 'Hide moderator' : 'Show moderator'}
+          </button>
+        </div>
+      )}
+
       {/* Scrollable content area */}
       <div
         ref={scrollRef}
@@ -245,6 +275,10 @@ export function TranscriptPanel({
           <div className="px-3 py-2 space-y-1">
             {Object.entries(interims).map(([speakerId, text]) => {
               const speaker = speakers[speakerId];
+              // Interims are rendered apart from the merged list, so the
+              // moderator filter has to be applied here too — otherwise
+              // hiding them still leaks their speech while they are talking.
+              if (!showModerator && speaker?.role === 'moderator') return null;
               return (
                 <p key={speakerId} className="text-slate-400 italic text-sm leading-snug">
                   {speaker?.displayName ?? 'Unknown'}: {text}
