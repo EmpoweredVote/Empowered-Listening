@@ -4,6 +4,7 @@ import { verifyToken } from '@/lib/auth/jwks';
 import { getPool } from '@/lib/db/pool';
 import { startPrepTime, endPrepTime } from '@/lib/debate/transitions';
 import { LD_PREP_TIME_SECONDS } from '@/lib/debate/segments';
+import { notifyDebateChanged } from '@/lib/debate/notify';
 
 const bodySchema = z.object({
   action: z.enum(['start', 'end']),
@@ -41,9 +42,13 @@ export async function POST(
         debateId, segmentId, speakerId, callerUserId,
         prepSeconds: prepSecondsRequested ?? LD_PREP_TIME_SECONDS,
       });
+      // Prep pauses the segment, which changes what every client should be
+      // showing and whether a microphone should be live.
+      await notifyDebateChanged(debateId, 'prep-start');
       return NextResponse.json(result);
     }
     const segment = await endPrepTime({ debateId, segmentId, speakerId, callerUserId });
+    await notifyDebateChanged(debateId, 'prep-end');
     return NextResponse.json({ segment });
   } catch (e) {
     const msg = e instanceof Error ? e.message : 'Unknown error';
