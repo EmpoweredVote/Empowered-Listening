@@ -3,8 +3,7 @@ import { env } from '@/lib/env';
 import { pool } from '@/lib/db/pool';
 import { sendBroadcast } from '@/lib/supabase/broadcast';
 import { computeDebateTimeMmss } from './debate-time';
-
-const UNAVAILABLE_THRESHOLD = 0.10;
+import { UtteranceBuffer, type Utterance } from './utterance-buffer';
 
 export class DeepgramLiveConnection {
   // Both assigned in start() via dynamic imports
@@ -13,6 +12,8 @@ export class DeepgramLiveConnection {
   private stopped = false;
   private reconnectAttempt = 0;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  /** Regroups Deepgram's committed chunks into rows — see utterance-buffer.ts. */
+  private readonly buffer = new UtteranceBuffer();
 
   constructor(
     private readonly debateId: string,
@@ -45,6 +46,11 @@ export class DeepgramLiveConnection {
       interim_results: 'true',
       smart_format: 'false',
       punctuate: 'false',
+      // Deepgram's default endpointing is 10ms, which calls a pause between
+      // ordinary words and fires `speech_final` mid-sentence. Half a second is
+      // a pause a listener would hear as one, so utterance boundaries land
+      // where a reader expects a row to end.
+      endpointing: 500,
       extra: { filler_words: 'true' },
       encoding: 'linear16',
       sample_rate: 16000,
@@ -68,11 +74,16 @@ export class DeepgramLiveConnection {
         return;
       }
 
-      if ((alt.confidence ?? 0) < UNAVAILABLE_THRESHOLD) return;
-
-      const text = (alt.transcript ?? '').trim();
-      if (!text) return;
-      await this.onFinalTranscript(text, alt.confidence ?? 0);
+      // `is_final` commits a window, it does not end a sentence. The buffer
+      // holds committed chunks until `speech_final` marks a real pause, and
+      // returns a row's worth of words at that point.
+      const utterance = this.buffer.add({
+        text: alt.transcript ?? '',
+        confidence: alt.confidence ?? 0,
+        speechFinal: data.speech_final === true,
+        receivedAt: new Date(),
+      });
+      if (utterance) await this.writeUtterance(utterance);
     });
 
     socket.on('close', () => {
@@ -95,8 +106,11 @@ export class DeepgramLiveConnection {
     }
   }
 
-  private async onFinalTranscript(text: string, confidence: number): Promise<void> {
-    const spokenAt = new Date();
+  /** Write one grouped utterance as a `transcript_entries` row. */
+  private async writeUtterance({ text, confidence, startedAt }: Utterance): Promise<void> {
+    // When the speaker *started* the sentence, not when the buffer released
+    // it — this is what a quoted note anchors to. See utterance-buffer.ts.
+    const spokenAt = startedAt;
     const debateTimeMmss = computeDebateTimeMmss(this.debateActualStart, spokenAt);
 
     try {
@@ -148,8 +162,24 @@ export class DeepgramLiveConnection {
     }
   }
 
+  /**
+   * Write whatever the buffer is holding.
+   *
+   * Called before the socket goes away — on reconnect and on stop — so a
+   * sentence that was still accumulating is recorded instead of discarded.
+   * A reconnect also means the next chunks belong to a new utterance, not a
+   * continuation of this one.
+   */
+  private async flushBuffer(): Promise<void> {
+    const utterance = this.buffer.flush();
+    if (utterance) await this.writeUtterance(utterance);
+  }
+
   private scheduleReconnect(): void {
     if (this.stopped) return;
+    this.flushBuffer().catch(err => {
+      console.error('[deepgram] flush before reconnect failed:', err);
+    });
     const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempt), 30_000);
     this.reconnectAttempt++;
     console.log(`[deepgram] reconnecting in ${delay}ms (attempt ${this.reconnectAttempt})`);
@@ -164,7 +194,13 @@ export class DeepgramLiveConnection {
     }, delay);
   }
 
-  stop(): void {
+  /**
+   * Async because the last words a speaker said are still in the buffer when
+   * the track goes away, and the end of a closing statement is exactly the
+   * part worth keeping. Callers that cannot await — LiveKit's synchronous
+   * event handlers — should `void` this rather than drop the flush.
+   */
+  async stop(): Promise<void> {
     this.stopped = true;
     if (this.reconnectTimer !== null) {
       clearTimeout(this.reconnectTimer);
@@ -173,6 +209,11 @@ export class DeepgramLiveConnection {
     if (this.socket) {
       try { this.socket.close(); } catch { /* ignore */ }
       this.socket = null;
+    }
+    try {
+      await this.flushBuffer();
+    } catch (err) {
+      console.error('[deepgram] flush on stop failed:', err);
     }
   }
 }
