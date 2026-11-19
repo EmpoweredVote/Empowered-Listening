@@ -74,14 +74,16 @@ export class TranscriptionWorker {
       (_track: RemoteTrack, _pub: RemoteTrackPublication, participant: RemoteParticipant) => {
         const conn = this.connections.get(participant.identity);
         if (conn) {
-          conn.stop();
+          // Not awaited: LiveKit's event handler is synchronous. stop() flushes
+          // the speaker's last buffered sentence, so it must still be called.
+          void conn.stop();
           this.connections.delete(participant.identity);
         }
       },
     );
 
     this.room.on(RoomEvent.Disconnected, () => {
-      for (const conn of this.connections.values()) conn.stop();
+      for (const conn of this.connections.values()) void conn.stop();
       this.connections.clear();
 
       if (!this.stopped) {
@@ -102,7 +104,9 @@ export class TranscriptionWorker {
 
   async stop(): Promise<void> {
     this.stopped = true;
-    for (const conn of this.connections.values()) conn.stop();
+    // Awaited here, unlike the event handlers: this is the path that ends a
+    // debate, and the closing words must land before the room goes away.
+    await Promise.all([...this.connections.values()].map(conn => conn.stop()));
     this.connections.clear();
     if (this.room) await this.room.disconnect();
   }
