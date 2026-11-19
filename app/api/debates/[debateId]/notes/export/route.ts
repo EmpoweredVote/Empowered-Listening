@@ -15,7 +15,16 @@ import { DebateNotesPdf } from '@/components/pdf/DebateNotesPdf';
 interface DebateRow {
   id: string;
   topic: string;
-  scheduled_at: string | null;
+  /**
+   * Already formatted as YYYY-MM-DD by the query, not a raw timestamp.
+   *
+   * The column is `scheduled_start timestamptz`, and node-postgres parses
+   * timestamptz into a JavaScript `Date` — so selecting it bare and calling
+   * `.slice(0, 10)` on it, as this route used to, throws at runtime. Formatting
+   * in SQL keeps the string contract the PDF expects and removes the
+   * Date-or-string ambiguity rather than guarding against it downstream.
+   */
+  scheduled_date: string | null;
 }
 
 interface SpeakerRow {
@@ -68,7 +77,7 @@ export async function GET(
     // 3. Fetch debate, speakers, transcript, and user's notes in parallel
     const [debateResult, speakersResult, transcriptResult, notesResult] = await Promise.all([
       pool.query<DebateRow>(
-        `SELECT id, topic, scheduled_at
+        `SELECT id, topic, to_char(scheduled_start, 'YYYY-MM-DD') AS scheduled_date
          FROM listening.debates
          WHERE id = $1`,
         [debateId],
@@ -163,9 +172,7 @@ export async function GET(
 
     const debuteProp = {
       title: debate.topic,
-      date: debate.scheduled_at
-        ? debate.scheduled_at.slice(0, 10)
-        : new Date().toISOString().slice(0, 10),
+      date: debate.scheduled_date ?? new Date().toISOString().slice(0, 10),
       affirmativeName: aff?.display_name ?? 'Affirmative Speaker',
       negativeName: neg?.display_name ?? 'Negative Speaker',
       moderatorName: mod?.display_name ?? 'Moderator',
