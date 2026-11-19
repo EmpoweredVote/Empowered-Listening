@@ -47,3 +47,11 @@ Thumbs.db
 # Playwright MCP page captures. 556 of these were committed to
 # ev-accounts and held live credentials.
 .playwright-mcp/
+
+# Notes exports downloaded from the app. The browser writes these to the
+# working directory, so one lands in the repo root whenever anyone clicks
+# Export, under a new debate id each time. Each carries the exporter's own
+# notes — which GET /notes is scoped to never hand to anyone else.
+# Named for exactly what the route sets in Content-Disposition, so an
+# unrelated PDF is never silently ignored.
+debate-notes-*.pdf
