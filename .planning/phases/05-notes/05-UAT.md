@@ -3,7 +3,7 @@ status: testing
 phase: 05-notes
 source: [05-VERIFICATION.md, 05-01-SUMMARY.md, 05-02-SUMMARY.md, 05-03-SUMMARY.md, 05-04-SUMMARY.md]
 started: 2026-11-16T15:24:00Z
-updated: 2026-11-19T03:20:00Z
+updated: 2026-11-19T03:40:00Z
 against_commit: f4c8991
 ---
 
@@ -138,8 +138,16 @@ NULL and the debate's status moved `cancelled` → `completed`, leaving the
 tester matching only the `affirmative` seat. No other debate, transcript or
 note was touched.
 
-**To revert:** set `debate_speakers.user_id` back to
-`4e6dde8f-2bd0-4054-824f-4164744165ea` on row `946393b7-f3cf-422e-9663-9ee06d940e01`.
+**REVERTED 2026-11-19.** Row `946393b7-f3cf-422e-9663-9ee06d940e01` restored to
+`4e6dde8f-2bd0-4054-824f-4164744165ea`, and debate
+`db5b2241-f540-494c-92f7-dea5fd7545fa` restored to `cancelled`.
+
+Note for next time: the revert line originally written here named only the
+`user_id` and omitted the status change, even though the paragraph above it
+records both. A revert instruction that covers part of a fixture is worse than
+none — it reads as complete. Write the fixture and its revert as one pair, and
+state the full debate id rather than an 8-character prefix: `db5b2241` alone
+matched nothing, and the row had to be found through the speaker id instead.
 
 Still blocked, and why:
 - **2** (observer flat list) — needs a signed-in non-participant.
@@ -172,14 +180,17 @@ speech, so every entry is opponent material, which is what a rebuttal checklist
 is built from. Verified through the live observer-snapshot — the client receives
 `negative, affirmative, moderator(null)` and resolves `userRole = 'speaker'`.
 
-**To revert:** set `debate_speakers.user_id` back to
-`4e6dde8f-2bd0-4054-824f-4164744165ea` on row
-`e2444d67-e611-4eb4-b71e-b610552695c3`.
+**REVERTED 2026-11-19.** Row `e2444d67-e611-4eb4-b71e-b610552695c3` restored to
+`4e6dde8f-2bd0-4054-824f-4164744165ea`.
 
-Note that while this fixture is in place the tester does **not** hold the
-moderator row on `80110ad3`, so `/moderator/80110ad3/...` will 404 for them by
-design (PR #94's gate). The other debates are untouched and still moderate
-normally.
+While this fixture was in place the tester did **not** hold the moderator row on
+`80110ad3`, so `/moderator/80110ad3/...` 404'd for them by design (PR #94's
+gate). That is over — moderator access to this debate works again.
+
+Both reverts verified: no row in `listening.debate_speakers` has a NULL
+`user_id`, and all three seats on each debate point at their original accounts.
+Re-running checks 4–7 or 8–12 means re-applying the fixtures first; they are
+written above exactly as applied.
 
 ### Side finding — orphaned Mux live streams
 
