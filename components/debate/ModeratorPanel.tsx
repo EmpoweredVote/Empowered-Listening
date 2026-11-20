@@ -4,6 +4,15 @@ import React, { useRef, useState } from 'react';
 import { useDebateStore } from '@/store/debateStore';
 import { useSegmentAutoExpire } from '@/hooks/useSegmentAutoExpire';
 import { LD_SEGMENTS } from '@/lib/debate/segments';
+import {
+  END_DEBATE_IDLE,
+  endDebateView,
+  endFailed,
+  endSucceeded,
+  pressEnd,
+  type EndDebateState,
+  type EndOutcome,
+} from '@/lib/debate/end-debate-state';
 import { SegmentTimer } from './SegmentTimer';
 import { PrepTimeDisplay } from './PrepTimeDisplay';
 import { BonusTimeDisplay } from './BonusTimeDisplay';
@@ -21,13 +30,22 @@ export function ModeratorPanel({ debateId }: ModeratorPanelProps) {
   // segment status to 'active' via Realtime — we could sync from store.status but
   // local state is simpler since the moderator is the one driving).
   const [prepSpeakerId, setPrepSpeakerId] = useState<string | null>(null);
-  // Blocks a second click while the end request is in flight.
-  const [ending, setEnding] = useState(false);
+  // See lib/debate/end-debate-state.ts — a successful end is terminal here,
+  // which is the whole point: the control must not go back to looking
+  // untouched (#95).
+  const [endState, setEndState] = useState<EndDebateState>(END_DEBATE_IDLE);
   // Shared across both PrepButtons — prevents concurrent prep API calls (double-click / both buttons).
   const prepBusyRef = useRef(false);
+  // Blocks a second segment call while one is in flight. Two concurrent
+  // `start` calls on 2026-11-18 both saw `livekit_egress_id IS NULL` and both
+  // ran the Mux bootstrap, leaving two live streams behind (#99). A disabled
+  // attribute alone does not close that window; a ref set synchronously does.
+  const segmentBusyRef = useRef(false);
+  const [segmentBusy, setSegmentBusy] = useState(false);
 
   const segments = useDebateStore(s => s.segments);
   const speakers = useDebateStore(s => s.speakers);
+  const debateStatus = useDebateStore(s => s.debate?.status);
   const active = useDebateStore(s => s.getActiveSegment());
   const activeStatus = active?.status;
 
@@ -43,30 +61,65 @@ export function ModeratorPanel({ debateId }: ModeratorPanelProps) {
   const affSpeaker = Object.values(speakers).find(s => s.role === 'affirmative');
   const negSpeaker = Object.values(speakers).find(s => s.role === 'negative');
 
-  async function call(path: string, body: unknown) {
+  function post(path: string, body: unknown) {
     const token = localStorage.getItem('ev_token');
-    const res = await fetch(path, {
+    return fetch(path, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify(body),
     });
+  }
+
+  async function call(path: string, body: unknown) {
+    const res = await post(path, body);
     if (!res.ok) alert(`Error: ${await res.text()}`);
     return res;
   }
 
-  async function endDebate(outcome: 'completed' | 'cancelled') {
+  /** Segment start / end / repeat — one at a time. */
+  async function segmentAction(action: 'start' | 'end' | 'repeat', segment: { id: string }) {
+    if (segmentBusyRef.current) return;
+    segmentBusyRef.current = true;
+    setSegmentBusy(true);
+    try {
+      await call(`/api/debates/${debateId}/segments/${segment.id}`, { action });
+    } finally {
+      segmentBusyRef.current = false;
+      setSegmentBusy(false);
+    }
+  }
+
+  async function endDebate(outcome: EndOutcome) {
+    // Refused here rather than relying on the disabled attribute, so a press
+    // that lands before React has re-rendered still cannot reach the route.
+    const next = pressEnd(endState, debateStatus, outcome);
+    if (next === endState) return;
+
     const verb = outcome === 'completed' ? 'finish' : 'cancel';
     if (!window.confirm(
       `This will ${verb} the debate and shut down the video stream, recording and transcription. Continue?`,
     )) return;
-    setEnding(true);
+
+    setEndState(next);
     try {
-      const res = await call(`/api/debates/${debateId}/end`, { outcome });
-      if (res.ok) alert('Debate ended. Video stream and transcription released.');
-    } finally {
-      setEnding(false);
+      const res = await post(`/api/debates/${debateId}/end`, { outcome });
+      if (res.ok) {
+        // Deliberately terminal. The debate's status will also arrive over
+        // Realtime, but the moderator should not have to wait for that to
+        // know the press landed.
+        setEndState(s => endSucceeded(s));
+      } else {
+        const reason = await res.text().catch(() => res.statusText);
+        setEndState(s => endFailed(s, reason));
+      }
+    } catch (err) {
+      // A network failure means the teardown may not have run at all, so it
+      // has to read as unfinished rather than as silence.
+      setEndState(s => endFailed(s, err instanceof Error ? err.message : String(err)));
     }
   }
+
+  const endView = endDebateView(endState, debateStatus);
 
   const activeMeta = active ? LD_SEGMENTS.find(m => m.segmentType === active.segment_type) : null;
   const upcomingMeta = nextUpcoming ? LD_SEGMENTS.find(m => m.segmentType === nextUpcoming.segment_type) : null;
@@ -93,18 +146,25 @@ export function ModeratorPanel({ debateId }: ModeratorPanelProps) {
         {active && (
           <>
             <button
-              onClick={() => call(`/api/debates/${debateId}/segments/${active.id}`, { action: 'end' })}
-              className="rounded bg-slate-800 px-3 py-1.5 text-sm text-white">End segment</button>
+              onClick={() => segmentAction('end', active)}
+              disabled={segmentBusy}
+              className="rounded bg-slate-800 px-3 py-1.5 text-sm text-white disabled:opacity-50">
+              End segment
+            </button>
             <button
-              onClick={() => call(`/api/debates/${debateId}/segments/${active.id}`, { action: 'repeat' })}
-              className="rounded bg-amber-600 px-3 py-1.5 text-sm text-white">Repeat segment</button>
+              onClick={() => segmentAction('repeat', active)}
+              disabled={segmentBusy}
+              className="rounded bg-amber-600 px-3 py-1.5 text-sm text-white disabled:opacity-50">
+              Repeat segment
+            </button>
           </>
         )}
         {nextUpcoming && !active && (
           <button
-            onClick={() => call(`/api/debates/${debateId}/segments/${nextUpcoming.id}`, { action: 'start' })}
-            className="rounded bg-emerald-600 px-3 py-1.5 text-sm text-white">
-            Start segment {nextUpcoming.sequence_order}/7
+            onClick={() => segmentAction('start', nextUpcoming)}
+            disabled={segmentBusy}
+            className="rounded bg-emerald-600 px-3 py-1.5 text-sm text-white disabled:opacity-50">
+            {segmentBusy ? 'Starting…' : `Start segment ${nextUpcoming.sequence_order}/7`}
           </button>
         )}
       </div>
@@ -150,17 +210,36 @@ export function ModeratorPanel({ debateId }: ModeratorPanelProps) {
         <div className="mt-2 flex flex-wrap gap-2">
           <button
             onClick={() => endDebate('completed')}
-            disabled={ending}
+            disabled={endView.disabled}
+            aria-busy={endState.phase === 'ending'}
             className="rounded bg-slate-800 px-3 py-1.5 text-sm text-white disabled:opacity-50">
-            Finish debate
+            {endView.finishLabel}
           </button>
           <button
             onClick={() => endDebate('cancelled')}
-            disabled={ending}
+            disabled={endView.disabled}
+            aria-busy={endState.phase === 'ending'}
             className="rounded border border-red-300 bg-white px-3 py-1.5 text-sm text-red-700 hover:bg-red-50 disabled:opacity-50">
-            Cancel debate
+            {endView.cancelLabel}
           </button>
         </div>
+
+        {/* The acknowledgement the button press used to lack. `role="status"`
+            so a screen reader hears it without the focus moving. */}
+        {endView.status && (
+          <p
+            role="status"
+            aria-live="polite"
+            className={`mt-2 text-xs ${
+              endView.status.tone === 'error'
+                ? 'font-medium text-red-700'
+                : endView.status.tone === 'done'
+                  ? 'text-emerald-700'
+                  : 'text-slate-600'
+            }`}>
+            {endView.status.message}
+          </p>
+        )}
       </div>
     </aside>
   );
