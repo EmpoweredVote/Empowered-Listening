@@ -114,15 +114,21 @@ export async function POST(
           // handed a player pointed at a Mux stream nothing will ever push
           // to: that shows a dead video frame instead of the transcript-only
           // placeholder the page already knows how to render. So the playback
-          // id is cleared, and the Mux stream released rather than orphaned.
+          // id is cleared, and the Mux stream is deleted.
+          //
+          // Deleted, not completed. This stream never received a frame, so
+          // there is no session to end and no recording to protect, and
+          // `complete()` would leave the object behind as `idle` forever —
+          // issue #99. `mux_stream_id` is cleared just below, so an orphan
+          // here is one nothing in the app can ever find again.
           console.error('[egress] bootstrap failed — debate continues without video:', egressErr);
 
           if (createdMuxStreamId) {
             try {
-              const { completeMuxLiveStream } = await import('@/lib/mux/client');
-              await completeMuxLiveStream(createdMuxStreamId);
+              const { deleteMuxLiveStream } = await import('@/lib/mux/client');
+              await deleteMuxLiveStream(createdMuxStreamId);
             } catch (cleanupErr) {
-              console.error('[egress] releasing the unused Mux stream failed:', cleanupErr);
+              console.error('[egress] deleting the unused Mux stream failed:', cleanupErr);
             }
           }
 
