@@ -54,6 +54,36 @@ const NOTE_COLUMNS = `
 `;
 
 /**
+ * The `debate_time_mmss` a new note is written with — `$4` from the client, or
+ * the quoted transcript line's own time when the client did not send one.
+ *
+ * A note that quotes a transcript line used to be stored with no time at all:
+ * `TranscriptSelectionPopup` sends `debateTimeMmss: null` alongside a real
+ * `sourceTranscriptEntryId`, and the INSERT took the null verbatim. In the
+ * exported PDF that note aligns to index -1, so it is parked in the
+ * pre-transcript block with no `@ mm:ss` — away from the line it quotes, which
+ * is the whole point of quoting it (issue #101).
+ *
+ * Derived here rather than in the popup for two reasons: it fixes every client
+ * at once, including the ones that do not exist yet, and it cannot drift from
+ * the entry the same statement writes into `source_transcript_entry_id`.
+ *
+ * `COALESCE` keeps a client-supplied time winning, so a free-typed note timed
+ * against the running clock is untouched. The subselect is scoped to `$2` so a
+ * note can never borrow a time from an entry on a different debate, and
+ * `transcript_entries.debate_time_mmss` is `NOT NULL`, so a matched row always
+ * has one.
+ */
+const QUOTED_NOTE_TIME = `
+  COALESCE(
+    $4::text,
+    (SELECT te.debate_time_mmss
+       FROM listening.transcript_entries te
+      WHERE te.id = $5::uuid AND te.debate_id = $2::uuid)
+  )
+`;
+
+/**
  * GET /api/debates/[debateId]/notes
  *
  * Returns the authenticated user's notes for the debate, ordered by
@@ -153,7 +183,7 @@ export async function POST(
        )
        INSERT INTO listening.notes
          (user_id, debate_id, content, debate_time_mmss, source_transcript_entry_id, rebuttal_order, created_at)
-       VALUES ($1, $2, $3, $4, $5, (SELECT ord FROM next_order), NOW())
+       VALUES ($1, $2, $3, ${QUOTED_NOTE_TIME}, $5, (SELECT ord FROM next_order), NOW())
        RETURNING ${NOTE_COLUMNS}`,
       [userId, debateId, content, debateTimeMmss ?? null, sourceTranscriptEntryId ?? null],
     );
@@ -161,7 +191,7 @@ export async function POST(
     result = await pool.query<NoteRow>(
       `INSERT INTO listening.notes
          (user_id, debate_id, content, debate_time_mmss, source_transcript_entry_id, created_at)
-       VALUES ($1, $2, $3, $4, $5, NOW())
+       VALUES ($1, $2, $3, ${QUOTED_NOTE_TIME}, $5, NOW())
        RETURNING ${NOTE_COLUMNS}`,
       [userId, debateId, content, debateTimeMmss ?? null, sourceTranscriptEntryId ?? null],
     );
