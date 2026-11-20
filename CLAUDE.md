@@ -146,6 +146,14 @@ away, rebase and handle conflicts *as conflicts*.
 One workflow, `.github/workflows/ci.yml`, job name `build`: `npm ci`, `npm run lint`,
 `npm test`, `npm run build`. All four must pass. Dependabot patch and minor updates auto-merge.
 
+🔴 **A `package-lock.json` regenerated on Windows fails CI.** `npm install` and `npm update`
+here drop the hoisted `@emnapi/runtime` that `@img/sharp-wasm32` needs — Windows never selects
+that optional sharp binary — and the Linux runner then refuses the tree with `Missing:
+@emnapi/runtime@… from lock file`. A local `npm ci` passes, being the same platform, so the
+lockfile looks clean right up until the push. Take dependency bumps from Dependabot PRs, which
+are generated on Linux; by hand, generate the lockfile in WSL or a container. Hit on
+2026-11-20 clearing Dependabot alert 52.
+
 ## Render settings live in ev-infra
 
 This repo's Render service is managed by the Render Blueprint in
