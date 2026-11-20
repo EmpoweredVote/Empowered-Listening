@@ -28,6 +28,11 @@
 -- debate 80110ad3).  The statement is a no-op on any database without such
 -- rows, including a fresh local stack.
 
+-- Applied to production on 2026-11-20 through the Supabase API, which stamps
+-- the version at apply time.  The filename carries that stamp rather than a
+-- round number so the repo and the remote migration history agree; renaming
+-- it back would make `supabase db push` see this as pending and re-run it.
+
 UPDATE listening.notes n
    SET debate_time_mmss = te.debate_time_mmss
   FROM listening.transcript_entries te
