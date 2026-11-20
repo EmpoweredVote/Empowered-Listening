@@ -43,6 +43,14 @@ must stay callable. Do not "fix" a permission error by granting EXECUTE back.
 `kxsdzaojfaibhuzmclfq` instance with Treasury Tracker, Essentials and Transparent Motivations,
 on a small compute size with a daily Disk IO budget (ev-cto decision 0038).
 
+🔴 **Name a migration after the version the apply assigned, not a round number.** Applying
+through the Supabase API or the dashboard stamps the version at apply time, and
+`supabase db push` matches local filenames against `supabase_migrations.schema_migrations` —
+a file whose version is missing from that list reads as pending and is re-run. So the filename
+follows the apply, not the other way round: `20261120150208_backfill_quoted_note_times.sql`.
+Three older `listening` migrations still carry round numbers that do not match what is
+deployed; all three are safe to re-run, which is why they have been left alone.
+
 ## Identity: two issuers, and the wrong one fails silently
 
 🔴 **A member's id is NOT the token's `sub`.** Since the WorkOS AuthKit cutover (ev-accounts
