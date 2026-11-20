@@ -39,8 +39,39 @@ export async function createMuxLiveStream(): Promise<MuxStreamInfo> {
   };
 }
 
+/**
+ * End a live *session* on a stream that really did ingest.
+ *
+ * This is the right call at the end of a debate, and only there: it finalises
+ * the recording and leaves the stream object in place as `idle`, so
+ * `findLiveStreamRecording` can still read its `recent_asset_ids` afterwards.
+ * Deleting here would take the recording with it.
+ *
+ * It is the WRONG call for a stream that never received a frame — see
+ * `deleteMuxLiveStream`.
+ */
 export async function completeMuxLiveStream(muxStreamId: string): Promise<void> {
   await getMux().video.liveStreams.complete(muxStreamId);
+}
+
+/**
+ * Remove a stream object that never ingested.
+ *
+ * `complete()` ends a session; it does not release the stream. A stream that
+ * never received a frame has no session to end, so completing it leaves the
+ * object behind as `idle` forever. That is issue #99: the egress bootstrap
+ * creates a Mux stream, LiveKit then refuses the egress (the transcode
+ * allowance is spent until ~1 Dec 2026), and the rollback called `complete()`
+ * while believing it had released the stream. `mux_stream_id` is cleared in
+ * the same rollback, so nothing in the app could ever find those streams
+ * again — two were left behind by a single debate on 2026-11-18 and had to be
+ * deleted by hand.
+ *
+ * There is no recording to protect in that case: the stream never ingested, so
+ * `recent_asset_ids` is empty and deleting costs nothing.
+ */
+export async function deleteMuxLiveStream(muxStreamId: string): Promise<void> {
+  await getMux().video.liveStreams.delete(muxStreamId);
 }
 
 /**
