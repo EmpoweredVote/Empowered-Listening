@@ -62,6 +62,8 @@ export function nextEmptySince(
 export interface AbandonCandidate {
   /** The debate's status, or `null` if the row has gone. */
   status: DebateLifecycle | null;
+  /** This tick's participant count, or `null` if LiveKit could not be asked. */
+  participants: number | null;
   /** When the room was first seen empty, or `null` if it is not empty. */
   emptySinceMs: number | null;
   nowMs: number;
@@ -70,13 +72,31 @@ export interface AbandonCandidate {
 /**
  * Should this debate be ended for having nobody in it?
  *
+ * Two conditions, and both are load-bearing:
+ *
+ *   1. **The room is empty right now**, confirmed by this tick. An elapsed
+ *      clock is not on its own a reason to cancel. `nextEmptySince`
+ *      deliberately carries the clock through a LiveKit outage, which means
+ *      that without this check an outage lasting longer than the grace window
+ *      would cancel a debate on evidence gathered before the outage began —
+ *      and people may have rejoined while we could not see them. Ending waits
+ *      for the first tick that can see the room again.
+ *   2. **It has been empty for the whole grace window**, so a refresh or a
+ *      reconnect does not read as an abandonment.
+ *
  * Only a `live` debate can be abandoned. A `scheduled` one has an empty room
  * by definition — nobody has arrived yet — and ending it would cancel debates
  * before they start. `completed` and `cancelled` are already over, and a
  * missing row has nothing left to end.
  */
-export function shouldEndAbandoned({ status, emptySinceMs, nowMs }: AbandonCandidate): boolean {
+export function shouldEndAbandoned({
+  status,
+  participants,
+  emptySinceMs,
+  nowMs,
+}: AbandonCandidate): boolean {
   if (status !== 'live') return false;
+  if (participants !== 0) return false;
   if (emptySinceMs === null) return false;
   return nowMs - emptySinceMs >= ABANDON_GRACE_MS;
 }
