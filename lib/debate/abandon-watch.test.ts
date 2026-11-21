@@ -9,7 +9,8 @@ vi.mock('@/lib/db/pool', () => ({
   pool: { query: (...args: unknown[]) => query(...args) },
 }));
 vi.mock('@/lib/livekit/room-service', () => ({
-  countParticipants: (room: string) => countParticipants(room),
+  countParticipants: (room: string, identities: ReadonlySet<string>) =>
+    countParticipants(room, identities),
 }));
 vi.mock('@/lib/debate/end-debate', () => ({
   endDebate: (id: string, outcome: string) => endDebate(id, outcome),
@@ -18,6 +19,7 @@ vi.mock('@/lib/debate/end-debate', () => ({
 import { ABANDON_GRACE_MS } from './abandon-rules';
 import {
   pendingAbandonClocks,
+  shouldStartAbandonWatch,
   stopAbandonWatch,
   sweepAbandonedDebates,
 } from './abandon-watch';
@@ -25,10 +27,14 @@ import {
 const DEBATE = 'd008dcf0-4430-4537-a901-94d8719c0673';
 const ROOM = `ld-${DEBATE}`;
 const T0 = 1_700_000_000_000;
+const AFF = `${DEBATE}:aff:11111111-1111-4111-8111-111111111111`;
+const MOD = `${DEBATE}:mod:33333333-3333-4333-8333-333333333333`;
 
-/** The watcher's query answers with one live debate. */
+/** The watcher's query answers with one live debate and its two seats. */
 function oneLiveDebate() {
-  query.mockResolvedValue({ rows: [{ id: DEBATE, status: 'live', livekit_room_name: ROOM }] });
+  query.mockResolvedValue({
+    rows: [{ id: DEBATE, status: 'live', livekit_room_name: ROOM, identities: [AFF, MOD] }],
+  });
 }
 
 beforeEach(() => {
@@ -198,5 +204,55 @@ describe('sweepAbandonedDebates', () => {
     await sweepAbandonedDebates(T0);
 
     expect(String(query.mock.calls[0][0])).toContain("status = 'live'");
+  });
+
+  it('counts only the debate’s own seats, not everything in the room', async () => {
+    // The transcription worker sits in every live debate's room until
+    // teardown — which is what this watcher is trying to reach. If the count
+    // included it, no room would ever read empty and nothing would ever end.
+    oneLiveDebate();
+    countParticipants.mockResolvedValue(0);
+    await sweepAbandonedDebates(T0);
+
+    const allowlist = countParticipants.mock.calls[0][1] as Set<string>;
+    expect(allowlist).toBeInstanceOf(Set);
+    expect([...allowlist].sort()).toEqual([AFF, MOD].sort());
+  });
+
+  it('skips a debate with no room name rather than asking about one', async () => {
+    // `livekit_room_name` is nullable in the schema. A null reaching
+    // listParticipants would come back not-found, read as an empty room, and
+    // cancel a debate on the strength of a missing column.
+    query.mockResolvedValue({
+      rows: [{ id: DEBATE, status: 'live', livekit_room_name: null, identities: [AFF] }],
+    });
+    await sweepAbandonedDebates(T0);
+    await sweepAbandonedDebates(T0 + ABANDON_GRACE_MS);
+
+    expect(countParticipants).not.toHaveBeenCalled();
+    expect(endDebate).not.toHaveBeenCalled();
+  });
+});
+
+describe('shouldStartAbandonWatch', () => {
+  it('runs on the deployed service', () => {
+    expect(shouldStartAbandonWatch({ NODE_ENV: 'production' })).toBe(true);
+  });
+
+  it('stays out of a local checkout by default', () => {
+    // A dev server pointed at the shared database but at a different LiveKit
+    // project sees not_found for every room, reads every live debate as
+    // empty, and cancels a real one two minutes later. Unset credentials fail
+    // safe; wrong ones do not, and nothing can tell them apart from here.
+    expect(shouldStartAbandonWatch({ NODE_ENV: 'development' })).toBe(false);
+    expect(shouldStartAbandonWatch({})).toBe(false);
+  });
+
+  it('can be turned on deliberately, for a staging box', () => {
+    expect(shouldStartAbandonWatch({ NODE_ENV: 'development', ABANDON_WATCH: '1' })).toBe(true);
+  });
+
+  it('can be turned off deliberately, as an escape hatch in production', () => {
+    expect(shouldStartAbandonWatch({ NODE_ENV: 'production', ABANDON_WATCH: '0' })).toBe(false);
   });
 });
