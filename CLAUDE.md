@@ -112,6 +112,11 @@ fails at verify time, not at boot.
   (`lib/debate/teardown.ts`) is the only correct way to release egress, the Mux stream and the
   transcription worker — call it from any new path that ends a debate, rather than stopping one
   of the three inline. `sweepOrphanedEgress` is the backstop, and runs whenever a segment starts.
+  An abandoned debate is now ended server-side: `lib/debate/abandon-watch.ts` polls
+  LiveKit presence and cancels a `live` debate whose room has been empty of speakers
+  and moderator for two minutes. Observers hold no LiveKit seat and so never keep a
+  debate alive, by design. `sweepOrphanedEgress` remains the backstop for the case
+  that watcher cannot see — an egress whose debate row never said `live`.
 - **There is no server-side segment auto-expire.** A client hook drives it today.
 - **The bonus pool is not persisted.** It lives in memory for the life of the segment.
 - **`/moderator/*` has no Next.js middleware gate.** The API is server-side protected on every
