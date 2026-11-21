@@ -117,6 +117,15 @@ fails at verify time, not at boot.
   and moderator for two minutes. Observers hold no LiveKit seat and so never keep a
   debate alive, by design. `sweepOrphanedEgress` remains the backstop for the case
   that watcher cannot see — an egress whose debate row never said `live`.
+  🔴 **A new way for a person to join a debate room must write a
+  `debate_speakers.livekit_identity` row.** The watcher counts only identities from
+  that column, because a room also holds the transcription worker and the egress
+  recorder, and counting those meant no room was ever empty and nothing was ever
+  ended. The count is therefore an allowlist, and a human who joins without a row
+  is invisible to it — the room reads empty and the watcher cancels a debate with
+  people still in it. Today this is closed by construction: `mintToken` has exactly
+  two call sites, and the one that serves people reads `identity` straight out of
+  that column. Keep it that way, or widen the allowlist in the same commit.
 - **There is no server-side segment auto-expire.** A client hook drives it today.
 - **The bonus pool is not persisted.** It lives in memory for the life of the segment.
 - **`/moderator/*` has no Next.js middleware gate.** The API is server-side protected on every
