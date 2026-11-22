@@ -4,8 +4,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSession } from '@/components/auth/SessionProvider';
 import { useDebateStore } from '@/store/debateStore';
 import { userIdFromToken } from '@/lib/auth/user-id';
+import { resolveParticipantRole } from '@/lib/debate/user-role';
 
-export type UserRole = 'observer' | 'speaker' | 'moderator' | 'anonymous';
+export type { UserRole } from '@/lib/debate/user-role';
+import type { UserRole } from '@/lib/debate/user-role';
 type Tier = 'inform' | 'connected' | 'empowered';
 
 export interface UserRoleState {
@@ -22,9 +24,13 @@ export interface UserRoleState {
  *
  * Role resolution order:
  *   1. anonymous   — no token present (or session still loading)
- *   2. moderator   — userId matches a debate_speaker with role=moderator
- *   3. speaker     — userId matches a debate_speaker with role=affirmative or negative
- *   4. observer    — token present but not a debate participant
+ *   2. moderator   — userId holds a debate_speakers seat with role=moderator
+ *   3. speaker     — userId holds a seat with role=affirmative or negative
+ *   4. observer    — token present, but no seat above (panelist included)
+ *
+ * Steps 2-4 live in lib/debate/user-role.ts, which is where the precedence
+ * among several seats is applied.  This comment described that precedence
+ * long before the code had it — see issue #100.
  *
  * Tier is fetched from /api/account/me and cached in component state.
  * Only called when a token is available.
@@ -74,23 +80,12 @@ export function useUserRole(): UserRoleState {
   const tier = tierFetched ? tierResult.tier : null;
   const tierLoading = !!token && !tierFetched;
 
-  // Derive userRole from userId + speakers list
-  let userRole: UserRole = 'anonymous';
-  if (!sessionLoading && token && userId) {
-    const speakerList = Object.values(speakers);
-    const match = speakerList.find((s) => s.user_id === userId);
-    if (match) {
-      if (match.role === 'moderator') {
-        userRole = 'moderator';
-      } else if (match.role === 'affirmative' || match.role === 'negative') {
-        userRole = 'speaker';
-      } else {
-        userRole = 'observer';
-      }
-    } else {
-      userRole = 'observer';
-    }
-  }
+  // Derive userRole from userId + the debate's seats.  Anonymous is decided
+  // here, because it is a fact about the session rather than about the seats.
+  const userRole: UserRole =
+    !sessionLoading && token && userId
+      ? resolveParticipantRole(Object.values(speakers), userId)
+      : 'anonymous';
 
   const loading = sessionLoading || tierLoading;
 

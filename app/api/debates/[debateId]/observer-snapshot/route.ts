@@ -45,7 +45,17 @@ export async function GET(
     pool.query(
       `SELECT id, debate_id, user_id, role, display_name, bonus_time_seconds, prep_time_seconds, livekit_identity
        FROM listening.debate_speakers
-       WHERE debate_id = $1`,
+       WHERE debate_id = $1
+       -- Ordered so the payload does not hand clients Postgres heap order.
+       -- Role precedence is applied in lib/debate/user-role.ts and does not
+       -- depend on this, but every other consumer of the speakers list reads
+       -- it in array order, and heap order changes under an unrelated UPDATE.
+       ORDER BY CASE role
+                  WHEN 'moderator'   THEN 0
+                  WHEN 'affirmative' THEN 1
+                  WHEN 'negative'    THEN 2
+                  ELSE 3
+                END, id`,
       [debateId],
     ),
   ]);
