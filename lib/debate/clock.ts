@@ -7,11 +7,15 @@
  * nothing anywhere notices. In one sitting the moderator saw 6:13 while a
  * speaker saw 2:16 of the same segment.
  *
- * That is a fairness bug, not a display bug: `useSegmentAutoExpire` and
- * `BonusTimeDisplay` both end segments off these numbers, so a skewed clock
- * does not merely mislead a speaker, it cuts them off early or lets them run
- * long. Speakers cannot be asked to calibrate their machines for a debate to
- * be fair; the correction belongs here.
+ * That is a fairness bug, not a display bug. It was sharper still when clients
+ * ended segments off these numbers — `useSegmentAutoExpire` and
+ * `BonusTimeDisplay` did, so a skewed clock cut a speaker off early or let
+ * them run long. Expiry is the server's now (`lib/debate/expiry-registry.ts`),
+ * which makes the deadline itself sound; what a skewed clock still does is
+ * tell a speaker they have two minutes left when they have six, and a speaker
+ * paces what they say by the number in front of them. Speakers cannot be asked
+ * to calibrate their machines for a debate to be fair; the correction belongs
+ * here.
  *
  * The approach is NTP's, minus the parts that need a protocol: time a request,
  * compare the server's clock to the midpoint of the round trip, and keep the
