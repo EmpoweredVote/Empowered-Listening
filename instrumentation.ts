@@ -9,8 +9,11 @@ export async function register() {
     // abandon watch starts, so a debate that is still being run is ticking
     // again before anything starts deciding whether it has been left.
     try {
-      const { rescheduleActiveSegments } = await import('./lib/debate/expiry-registry');
-      await rescheduleActiveSegments();
+      const { rescheduleActiveSegments, shouldRunSegmentExpiry } =
+        await import('./lib/debate/expiry-registry');
+      if (shouldRunSegmentExpiry()) {
+        await rescheduleActiveSegments();
+      }
     } catch (err) {
       console.error('[expiry] failed to re-arm segment timers:', err);
     }

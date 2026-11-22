@@ -136,7 +136,11 @@ fails at verify time, not at boot.
   Today that is segment start, repeat, and the end of prep (prep start cancels).
   Miss one and the segment either never expires or expires on a deadline that no
   longer applies — and neither failure is visible until a sitting. The timers are
-  in memory on a single instance, the same caveat as the abandon watcher.
+  in memory on a single instance, the same caveat as the abandon watcher, and
+  gated by `shouldRunSegmentExpiry` for the same reason — except that this one
+  needs nothing but the database, which a local checkout against the shared
+  instance already has, so it would end segments in a real debate. `SEGMENT_EXPIRY`
+  is its switch (`1` on anywhere, `0` off in production); unset means production only.
 - ✅ **The bonus pool actually depletes.** `debate_speakers.bonus_time_seconds` is the
   pool; `listening.end_segment` charges a segment's overrun against it under a row
   lock, and `repeat_segment` hands the charge back when a take is discarded. Before
