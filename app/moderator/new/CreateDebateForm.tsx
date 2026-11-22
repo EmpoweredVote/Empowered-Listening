@@ -9,11 +9,11 @@ interface FormState {
   negativeName: string;
 }
 
-type SubmitState = 'loading-role' | 'unauthorized' | 'ready' | 'submitting' | 'error';
+type SubmitState = 'loading-account' | 'account-unavailable' | 'ready' | 'submitting' | 'error';
 
 export function CreateDebateForm() {
   const router = useRouter();
-  const [submitState, setSubmitState] = useState<SubmitState>('loading-role');
+  const [submitState, setSubmitState] = useState<SubmitState>('loading-account');
   const [moderatorDisplayName, setModeratorDisplayName] = useState('Moderator');
   const [state, setState] = useState<FormState>({ topic: '', affirmativeName: '', negativeName: '' });
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -32,7 +32,7 @@ export function CreateDebateForm() {
         setModeratorDisplayName((acct.display_name as string | undefined) ?? 'Moderator');
         setSubmitState('ready');
       })
-      .catch(() => setSubmitState('unauthorized'));
+      .catch(() => setSubmitState('account-unavailable'));
   }, []);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -55,13 +55,18 @@ export function CreateDebateForm() {
     router.push(`/moderator/${result.debateId}/share`);
   }
 
-  if (submitState === 'loading-role') {
-    return <p className="mt-6 text-slate-500">Checking your access...</p>;
+  if (submitState === 'loading-account') {
+    return <p className="mt-6 text-slate-500">Getting your details...</p>;
   }
-  if (submitState === 'unauthorized') {
+  // The moderator role was already checked by the gate in app/moderator/layout.tsx,
+  // so a failure here is the account service, not a missing role.  This fetch
+  // is only for the display name the new debate records.
+  if (submitState === 'account-unavailable') {
     return (
       <p className="mt-6 rounded bg-amber-50 p-4 text-amber-900">
-        You need the moderator role to create debates.  Contact support@empowered.vote if this is unexpected.
+        We couldn&apos;t load your account details, so the debate can&apos;t record who is
+        moderating it.  Reload to try again, and contact support@empowered.vote if it keeps
+        happening.
       </p>
     );
   }
