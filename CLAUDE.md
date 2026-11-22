@@ -126,14 +126,25 @@ fails at verify time, not at boot.
   people still in it. Today this is closed by construction: `mintToken` has exactly
   two call sites, and the one that serves people reads `identity` straight out of
   that column. Keep it that way, or widen the allowlist in the same commit.
-- **There is no server-side segment auto-expire.** A client hook drives it today.
+- ✅ **Segments expire on the server** (`lib/debate/expiry-registry.ts`), not in the
+  moderator's tab. One `setTimeout` per active segment, re-armed at boot from
+  `instrumentation.ts` because a deploy drops them all. A segment ends at `end_time`
+  plus whatever is left of the speaker's bonus pool; one with no speaker ends at
+  `end_time`. The client hook that drove this is gone — clients render, they never
+  enforce.
+  🔴 **Every path that changes a segment's `end_time` has to re-arm the timer.**
+  Today that is segment start, repeat, and the end of prep (prep start cancels).
+  Miss one and the segment either never expires or expires on a deadline that no
+  longer applies — and neither failure is visible until a sitting. The timers are
+  in memory on a single instance, the same caveat as the abandon watcher.
 - ✅ **The bonus pool actually depletes.** `debate_speakers.bonus_time_seconds` is the
   pool; `listening.end_segment` charges a segment's overrun against it under a row
   lock, and `repeat_segment` hands the charge back when a take is discarded. Before
   that it was never written at all — `consume_bonus_time` existed and nothing called
   it — so a speaker who burned all 60 seconds in segment 1 started segment 2 with a
   fresh 60. The charge happens on the transition out of `active`, so a duplicate or
-  retried end costs the speaker once however many callers race.
+  retried end costs the speaker once however many callers race — and with the
+  expiry timer above there really are two callers now, the moderator and the server.
 - **`/moderator/*` has no Next.js middleware gate.** The API is server-side protected on every
   route; the moderator UI gate is client-side only. Add the middleware before production.
 
