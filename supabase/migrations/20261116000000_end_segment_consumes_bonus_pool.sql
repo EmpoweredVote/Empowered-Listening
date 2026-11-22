@@ -1,5 +1,6 @@
 -- ============================================================
--- end_segment: actually spend the speaker's bonus pool
+-- end_segment: actually spend the speaker's bonus pool,
+-- and repeat_segment: give it back when the take is discarded
 -- ============================================================
 --
 -- The 60-second bonus pool has never depleted. `listening.consume_bonus_time`
@@ -106,3 +107,72 @@ $$;
 
 -- Client EXECUTE stays revoked (migration 20260617000000, June 2026 IDOR audit).
 -- CREATE OR REPLACE preserves existing grants, so nothing is re-granted here.
+
+-- ============================================================
+-- repeat_segment: give the pool back when the take is thrown away
+-- ============================================================
+--
+-- repeat_segment already resets the segment's bonus_seconds_used to 0, which
+-- says plainly what a repeat means: the take is discarded and its accounting
+-- with it. Now that end_segment actually spends the pool, resetting only the
+-- counter would leave the two halves disagreeing — the segment would read as
+-- having used no bonus while the speaker stayed charged for it, permanently,
+-- for a take nobody kept.
+--
+-- The counter is the ledger for exactly one charge, so refunding it and
+-- clearing it in the same call can never pay twice: a second repeat with no
+-- intervening end finds 0 to refund. The pool therefore cannot climb above
+-- where it started.
+--
+-- Not-found behaviour is deliberately unchanged: no row means no refund and
+-- an UPDATE that matches nothing, exactly as before.
+-- ============================================================
+
+CREATE OR REPLACE FUNCTION listening.repeat_segment(
+  p_debate_id uuid,
+  p_segment_id uuid,
+  p_moderator_user_id uuid,
+  p_duration_seconds integer
+)
+RETURNS listening.debate_segments
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_segment    listening.debate_segments;
+  v_end_time   timestamptz;
+  v_refund     integer;
+  v_speaker_id uuid;
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM listening.debate_speakers
+    WHERE debate_id = p_debate_id AND user_id = p_moderator_user_id AND role = 'moderator'
+  ) THEN
+    RAISE EXCEPTION 'Not authorized: caller is not the debate moderator';
+  END IF;
+
+  -- Same lock order as end_segment — segment first, then speaker — so a
+  -- repeat and an end racing on one segment cannot deadlock.
+  SELECT bonus_seconds_used, speaker_id INTO v_refund, v_speaker_id
+  FROM listening.debate_segments
+  WHERE id = p_segment_id AND debate_id = p_debate_id
+  FOR UPDATE;
+
+  IF COALESCE(v_refund, 0) > 0 AND v_speaker_id IS NOT NULL THEN
+    UPDATE listening.debate_speakers
+    SET bonus_time_seconds = bonus_time_seconds + v_refund
+    WHERE id = v_speaker_id;
+  END IF;
+
+  v_end_time := NOW() + (p_duration_seconds || ' seconds')::interval;
+
+  UPDATE listening.debate_segments
+  SET status = 'active', actual_start = NOW(), end_time = v_end_time,
+      prep_time_end_time = NULL, paused_remaining_seconds = NULL, bonus_seconds_used = 0
+  WHERE id = p_segment_id AND debate_id = p_debate_id
+  RETURNING * INTO v_segment;
+
+  RETURN v_segment;
+END;
+$$;
