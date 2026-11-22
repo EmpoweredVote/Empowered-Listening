@@ -14,10 +14,10 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation** - Schema, service accounts, Next.js scaffold, SSO auth, and desktop gate
 - [x] **Phase 2: Speaker Room** - Full Lincoln-Douglas debate runs end-to-end with server-authoritative timers and mic control
-- [ ] **Phase 3: Observer Streaming** - Anonymous observers watch the live debate via HLS with segment timeline overlay
+- [x] **Phase 3: Observer Streaming** - Anonymous observers watch the live debate via HLS with segment timeline overlay
 - [x] **Phase 4: Transcription** - Every spoken word is attributed, stored per segment, and visible in near-real-time
 - [ ] **Phase 5: Notes** - Connected accounts take timestamped notes; speakers use rebuttal checklist view
-- [ ] **Phase 6: Voting and Badges** - Connected and Empowered accounts vote on Last Speaker, winner, and next topic; all writes gated by tier and badge checks — **DEFERRED 2026-11-15, not yet planned** (see Phase 6 details for the two prerequisites)
+- [ ] **Phase 6: Voting and Badges** - Connected and Empowered accounts vote on Last Speaker, winner, and next topic; all writes gated by tier and badge checks — **DEFERRED 2026-11-15, not yet planned** (see Phase 6 details for the one prerequisite)
 
 ## Phase Details
 
@@ -77,7 +77,7 @@ Plans:
 **Plans**: 5 plans in 3 waves (03-01 done; 03-02, 03-03 parallel in Wave 1; 03-04 in Wave 2; 03-05 in Wave 3)
 
 Plans:
-- [x] 03-01-PLAN.md — LiveKit Egress configuration, RTMP to Mux pipeline (Tasks 1-3 complete; Task 4 deferred pending Mux Growth plan)
+- [x] 03-01-PLAN.md — LiveKit Egress configuration, RTMP to Mux pipeline (Task 4 verified live 2026-11-17: LiveKit egress → RTMP → Mux → HLS, four renditions up to 720p.  The free plan was never the blocker.  Open question, not blocking: whether `latency_mode` should be `reduced` or `low`)
 - [x] 03-02-PLAN.md — HLS observer player (hls.js + Safari native fallback), LIVE-delayed badge, anon-accessible stream endpoint
 - [x] 03-03-PLAN.md — Segment timeline overlay + anon observer Realtime hook + observer-snapshot endpoint
 - [x] 03-04-PLAN.md — Desktop multi-panel layout (react-resizable-panels v4) with keyboard shortcuts (UX-02)
@@ -118,7 +118,9 @@ Plans:
 - [x] 05-04-PLAN.md — Observer notes UI: useUserRole, NoteInput, NoteItem, NotesPanel wired into both layouts; N keyboard shortcut
 - [x] 05-05-PLAN.md — Speaker rebuttal checklist: TranscriptSelectionPopup, @dnd-kit RebuttalChecklist, promote/demote on NoteItem (Tasks 1-2 shipped; Task 3 live verification outstanding)
 
-**Verification gate**: Task 3 of 05-05 is a two-browser live-debate check (speaker + observer + moderator) covering promote/demote, drag persistence across reload, ephemeral checkbox reset, keyboard drag a11y, the selection popup writing a real `source_transcript_entry_id`, and role gating.  It has not been run, and it is itself blocked by the Mux live-pipeline gate carried over from Phase 3.  **Phase 5 is code-complete, not verified.**
+**Verification gate**: Task 3 of 05-05 is a two-browser live-debate check (speaker + observer + moderator) covering promote/demote, drag persistence across reload, ephemeral checkbox reset, keyboard drag a11y, the selection popup writing a real `source_transcript_entry_id`, and role gating.  It has not been run.  **Phase 5 is code-complete, not verified.**
+
+It is not blocked by anything.  An earlier version of this note said it waited on the Mux live-pipeline gate from Phase 3; that was wrong twice over — `ObserverShell.tsx` nulls `hlsUrl` without a `mux_playback_id` and the observer page renders fine without video, and the pipeline was verified on 2026-11-17 regardless.  What it needs is a sitting: three browser roles and a real debate.  Issue #69 (the live check PR #58 never got) covers the same ground and should be folded into it rather than run separately.
 
 ### Phase 6: Voting and Badges
 **Goal**: Connected and Empowered accounts can vote on Last Speaker, post-debate winner, and next debate topic; all vote submissions are gated by tier, badge, standing, and geographic restrictions
@@ -130,14 +132,14 @@ Plans:
   3. A moderator can propose 2-4 topic options; Connected and Empowered accounts can vote during the designated window; the winner becomes the next debate topic
   4. Any vote attempt by a user who fails JWT verification, tier check, `account_standing` check, required badge check, or geographic restriction is rejected before the write reaches the database
   5. All interactive elements in the voting UI are keyboard-accessible; transcript updates use `aria-live polite`; color is never the sole signal for any state; WCAG AA contrast is met throughout
-**Status**: 🔴 **DEFERRED 2026-11-15 — not planned, by decision.**  The scope below is unchanged and still wanted; it is waiting on two prerequisites.
+**Status**: 🔴 **DEFERRED 2026-11-15 — not planned, by decision.**  The scope below is unchanged and still wanted; it is waiting on one prerequisite.
 
 1. **Badges do not exist yet.**  The badge check in VOTE-05 is not a technical detail, it is the premise: the badge is what establishes that everyone speaking and voting is working from the same facts.  Badges live in ev-accounts, not here.  Building the vote machinery with that check stubbed out would either sit unused until badges land, or ship a vote that contradicts the thing the vote was designed to protect.  Geographic restriction is the same shape of "one day, not now" — there is no column for it on `debates`, and nothing to set.
-2. **No second blocker.**  An earlier draft of this note claimed VOTE-01 and VOTE-02 were also blocked on the unverified Mux pipeline.  They are not: `ObserverShell.tsx` resolves `hlsUrl` to null when there is no `mux_playback_id` and the observer page renders with "Stream unavailable." in the video area, with the segment timeline, transcript and notes panels all working.  The audience can vote without watching video.  Badges are the only real prerequisite.
+2. **No second blocker.**  An earlier draft of this note claimed VOTE-01 and VOTE-02 were also blocked on the unverified Mux pipeline.  They were not — `ObserverShell.tsx` resolves `hlsUrl` to null when there is no `mux_playback_id`, and the observer page renders with "Stream unavailable." in the video area while the segment timeline, transcript and notes panels all keep working, so the audience can vote without watching video.  The question is moot in any case: the pipeline was verified end to end on 2026-11-17.  Badges are the only prerequisite.
 
 What is *not* blocked: three of VOTE-05's five gate conditions already exist and are proven in the notes routes — JWT verification (`verifyToken`, dual-issuer, 01-04), Connected/Empowered tier (`requireConnectedTier`, 05-02) and `account_standing` (01-04).  Only the badge and geographic clauses are missing.
 
-**Revisit when** badges ship in ev-accounts, or when the live pipeline is verified — whichever comes first, since the second unblocks roughly half the phase on its own.
+**Revisit when** badges ship in ev-accounts.  Nothing else gates this phase.  An earlier version of this line also offered "or when the live pipeline is verified"; that happened on 2026-11-17 and unblocked nothing here, so the condition is gone rather than met.
 
 **Plans**: TBD — none written
 
@@ -157,7 +159,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 |-------|----------------|--------|-----------|
 | 1. Foundation | 4/4 | Complete | 2026-04-21 |
 | 2. Speaker Room | 7/7 | Complete | 2026-04-22 |
-| 3. Observer Streaming | 5/5 | Functionally complete (03-01 Task 4 deferred — Mux Growth plan) | 2026-04-22 |
+| 3. Observer Streaming | 5/5 | Complete — live Mux pipeline verified 2026-11-17 | 2026-11-17 |
 | 4. Transcription | 4/4 | Complete | 2026-04-27 |
-| 5. Notes | 5/5 | Code complete — 05-05 Task 3 live verification not run | - |
-| 6. Voting and Badges | 0/5 | **Deferred** — blocked on badges (ev-accounts) + live pipeline | - |
+| 5. Notes | 5/5 | Code complete — 05-05 Task 3 live verification not run (needs a sitting, not Mux) | - |
+| 6. Voting and Badges | 0/5 | **Deferred** — blocked on badges (ev-accounts) | - |
