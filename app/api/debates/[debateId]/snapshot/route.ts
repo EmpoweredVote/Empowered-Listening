@@ -19,8 +19,16 @@ export async function GET(
                        bonus_seconds_used, actual_start, actual_end, status,
                        end_time, prep_time_end_time, paused_remaining_seconds
                 FROM listening.debate_segments WHERE debate_id = $1 ORDER BY sequence_order`, [debateId]),
+    // Ordered so the payload does not hand clients Postgres heap order; see
+    // the observer-snapshot route and lib/debate/user-role.ts.
     pool.query(`SELECT id, debate_id, user_id, role, display_name, bonus_time_seconds, prep_time_seconds, livekit_identity
-                FROM listening.debate_speakers WHERE debate_id = $1`, [debateId]),
+                FROM listening.debate_speakers WHERE debate_id = $1
+                ORDER BY CASE role
+                           WHEN 'moderator'   THEN 0
+                           WHEN 'affirmative' THEN 1
+                           WHEN 'negative'    THEN 2
+                           ELSE 3
+                         END, id`, [debateId]),
   ]);
 
   if (debate.rows.length === 0) return NextResponse.json({ error: 'Not found' }, { status: 404 });
