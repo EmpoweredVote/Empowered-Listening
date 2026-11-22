@@ -53,9 +53,11 @@ export function TranscriptReview({ debateId }: { debateId: string }) {
         entries: ModeratorTranscriptEntry[] | null;
       };
 
-      // Still running: back to the debate, same as the old page did.
+      // Still running, so there is no transcript to review yet.  Sent to the
+      // share page rather than /moderator/[debateId], which the old page used
+      // and which is not a route — this redirect landed on a 404.
       if (data.entries === null) {
-        router.replace(`/moderator/${debateId}`);
+        router.replace(`/moderator/${debateId}/share`);
         return 'redirected';
       }
 
