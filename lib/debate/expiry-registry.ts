@@ -33,6 +33,42 @@ interface ExpiryRow {
   bonus_time_seconds: number;
 }
 
+/** How long to wait before retrying an expiry that failed on something transient. */
+export const EXPIRY_RETRY_MS = 15_000;
+
+/** Total attempts at one segment's expiry, the first one included. */
+export const EXPIRY_MAX_ATTEMPTS = 4;
+
+/** segmentId -> attempts made so far. Only present while a retry is pending. */
+const retryAttempts = new Map<string, number>();
+
+/**
+ * Should this process arm expiry timers at all?
+ *
+ * Deployed: yes. A local checkout: no, unless asked.
+ *
+ * The same reasoning as `shouldStartAbandonWatch`, and the hazard is sharper
+ * here. That one fails safe without LiveKit credentials, because it cannot
+ * read presence without them. This needs nothing but the database — which a
+ * local checkout pointed at the shared instance has. A `next dev` process, or
+ * two instances overlapping during a rolling deploy, would arm their own
+ * timers against live segments and end them on their own authority, and no
+ * `repeat` or prep cancel issued anywhere else can reach a timer that lives in
+ * another process's memory.
+ *
+ * `SEGMENT_EXPIRY=1` turns it on anywhere, for a staging box. `SEGMENT_EXPIRY=0`
+ * turns it off in production, as an escape hatch during a sitting. Separate
+ * from `ABANDON_WATCH` on purpose: the two end different things, and stopping
+ * one is not a reason to stop the other.
+ */
+export function shouldRunSegmentExpiry(
+  env: { NODE_ENV?: string; SEGMENT_EXPIRY?: string } = process.env,
+): boolean {
+  if (env.SEGMENT_EXPIRY === '1') return true;
+  if (env.SEGMENT_EXPIRY === '0') return false;
+  return env.NODE_ENV === 'production';
+}
+
 /** Cancel any pending expiry for a segment. Safe to call when none exists. */
 export function cancelSegmentExpiry(segmentId: string): void {
   const existing = timers.get(segmentId);
@@ -40,9 +76,10 @@ export function cancelSegmentExpiry(segmentId: string): void {
     clearTimeout(existing);
     timers.delete(segmentId);
   }
+  retryAttempts.delete(segmentId);
 }
 
-/** How many timers are pending — for the health route and for tests. */
+/** How many timers are pending — for tests. */
 export function pendingExpiryCount(): number {
   return timers.size;
 }
@@ -59,6 +96,9 @@ export function pendingExpiryCount(): number {
  * during prep `end_time` is not a live deadline.
  */
 export async function scheduleSegmentExpiry(debateId: string, segmentId: string): Promise<void> {
+  // Also clears the retry count: re-arming is what the moderator doing
+  // something — start, repeat, the end of prep — amounts to, and that is a
+  // fresh deadline rather than a continuation of a failing one.
   cancelSegmentExpiry(segmentId);
 
   const pool = getPool();
@@ -91,6 +131,19 @@ export async function scheduleSegmentExpiry(debateId: string, segmentId: string)
   // scheduling into the past.
   const delayMs = Math.max(0, expiresAtMs - Date.now());
 
+  // Cancelled again, immediately before arming. The cancel at the top of this
+  // function is not enough on its own: the database read above is an await, so
+  // two concurrent calls can both pass that first cancel, both arm, and the
+  // second's `timers.set` then overwrites the first — leaving a live timer
+  // nothing can reach, because every cancel path works through this map. The
+  // orphan fires on a deadline the moderator has already replaced and ends the
+  // segment early. Cancel and arm have to sit in one synchronous block.
+  cancelSegmentExpiry(segmentId);
+  armTimer(debateId, segmentId, delayMs);
+}
+
+/** Arm the one timer a segment is allowed. Callers cancel immediately before. */
+function armTimer(debateId: string, segmentId: string, delayMs: number): void {
   const timer = setTimeout(() => {
     timers.delete(segmentId);
     void expireSegment(debateId, segmentId);
@@ -99,6 +152,36 @@ export async function scheduleSegmentExpiry(debateId: string, segmentId: string)
   // Do not hold the event loop open on this timer alone.
   timer.unref?.();
   timers.set(segmentId, timer);
+}
+
+/**
+ * Try again after an expiry that failed on something transient.
+ *
+ * The timer removes itself from the map before `expireSegment` runs, so
+ * without this a single failed LiveKit or database call dropped the segment's
+ * deadline for good and put the debate back on the moderator's tab — the
+ * dependency this module exists to remove, reintroduced silently, at the one
+ * moment something had already gone wrong.
+ *
+ * Bounded: a segment whose end keeps failing will not be fixed by a sixth
+ * attempt, and a timer that re-arms for ever outlives the debate.
+ */
+function scheduleExpiryRetry(debateId: string, segmentId: string): void {
+  const attempts = (retryAttempts.get(segmentId) ?? 0) + 1;
+
+  if (attempts >= EXPIRY_MAX_ATTEMPTS) {
+    retryAttempts.delete(segmentId);
+    console.error(
+      `[expiry] giving up on segment ${segmentId} of debate ${debateId} after ` +
+      `${EXPIRY_MAX_ATTEMPTS} attempts — it now has no server-side deadline and ` +
+      `only the moderator's End button will close it`,
+    );
+    return;
+  }
+
+  cancelSegmentExpiry(segmentId);
+  retryAttempts.set(segmentId, attempts);
+  armTimer(debateId, segmentId, EXPIRY_RETRY_MS);
 }
 
 /**
@@ -123,21 +206,36 @@ async function expireSegment(debateId: string, segmentId: string): Promise<void>
         WHERE s.id = $1 AND s.debate_id = $2`,
       [segmentId, debateId],
     );
-    if (rows.length === 0) return;
-    if (rows[0].status !== 'active') return;
+    // The next three are outcomes, not failures: the segment is gone, the
+    // moderator got there first, or there is nobody whose authority we could
+    // end it on. A retry would help with none of them, so the retry count
+    // goes with the deadline.
+    if (rows.length === 0) {
+      retryAttempts.delete(segmentId);
+      return;
+    }
+    if (rows[0].status !== 'active') {
+      retryAttempts.delete(segmentId);
+      return;
+    }
 
     const moderatorUserId = rows[0].moderator_user_id;
     if (!moderatorUserId) {
+      retryAttempts.delete(segmentId);
       console.error('[expiry] no moderator on debate %s — cannot end segment', debateId);
       return;
     }
 
     await performSegmentEnd({ debateId, segmentId, moderatorUserId });
+    retryAttempts.delete(segmentId);
     console.info('[expiry] ended segment %s of debate %s', segmentId, debateId);
   } catch (err) {
-    // A failed auto-expire must not take the process down. The moderator's
-    // End button is still there.
+    // A failed auto-expire must not take the process down. But it must not
+    // silently drop the deadline either: the timer has already removed itself,
+    // so without a retry the segment is back to depending on the moderator's
+    // tab, at the exact moment something is already wrong.
     console.error('[expiry] failed to end segment %s:', segmentId, err);
+    scheduleExpiryRetry(debateId, segmentId);
   }
 }
 

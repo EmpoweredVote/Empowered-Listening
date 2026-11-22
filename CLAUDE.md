@@ -136,15 +136,27 @@ fails at verify time, not at boot.
   Today that is segment start, repeat, and the end of prep (prep start cancels).
   Miss one and the segment either never expires or expires on a deadline that no
   longer applies — and neither failure is visible until a sitting. The timers are
-  in memory on a single instance, the same caveat as the abandon watcher.
+  in memory on a single instance, the same caveat as the abandon watcher, and
+  gated by `shouldRunSegmentExpiry` for the same reason — except that this one
+  needs nothing but the database, which a local checkout against the shared
+  instance already has, so it would end segments in a real debate. `SEGMENT_EXPIRY`
+  is its switch (`1` on anywhere, `0` off in production); unset means production only.
 - ✅ **The bonus pool actually depletes.** `debate_speakers.bonus_time_seconds` is the
   pool; `listening.end_segment` charges a segment's overrun against it under a row
   lock, and `repeat_segment` hands the charge back when a take is discarded. Before
   that it was never written at all — `consume_bonus_time` existed and nothing called
   it — so a speaker who burned all 60 seconds in segment 1 started segment 2 with a
-  fresh 60. The charge happens on the transition out of `active`, so a duplicate or
-  retried end costs the speaker once however many callers race — and with the
-  expiry timer above there really are two callers now, the moderator and the server.
+  fresh 60.
+  🔴 **Anything that stops a segment's clock must charge through
+  `listening.charge_segment_overrun`.** Three things do: `end_segment`,
+  `start_segment` (which completes any still-active segment inline), and
+  `start_prep_time` (prep taken after the buzzer froze the clock and handed the
+  pool back unspent, giving a second full bonus window). `repeat_segment` is the
+  inverse and refunds. The charge is on the transition out of `active` and
+  `bonus_seconds_used` accumulates rather than being assigned, so one take can be
+  charged twice and a repeat still refunds the whole of what it cost. The
+  invariant is `bonus_time_seconds + SUM(bonus_seconds_used) = 60`; a fourth path
+  that stops a clock without charging breaks it silently.
 - **`/moderator/*` has no Next.js middleware gate.** The API is server-side protected on every
   route; the moderator UI gate is client-side only. Add the middleware before production.
 

@@ -12,6 +12,9 @@ vi.mock('@/lib/debate/end-segment-flow', () => ({
 }));
 
 import {
+  EXPIRY_MAX_ATTEMPTS,
+  EXPIRY_RETRY_MS,
+  shouldRunSegmentExpiry,
   cancelSegmentExpiry,
   pendingExpiryCount,
   rescheduleActiveSegments,
@@ -260,5 +263,110 @@ describe('rescheduleActiveSegments', () => {
     // refuse to boot the server.
     query.mockRejectedValueOnce(new Error('connection terminated'));
     await expect(rescheduleActiveSegments()).resolves.toBe(0);
+  });
+});
+
+describe('review findings', () => {
+  it('does not arm timers in a process that should not be acting', async () => {
+    // Same hazard as the abandon watcher, and worse in one way: a local
+    // checkout pointed at the shared database would end segments in a real
+    // debate. Unset credentials do not save us here — this path needs only
+    // the database, which a local checkout has.
+    expect(shouldRunSegmentExpiry({ NODE_ENV: 'development' })).toBe(false);
+    expect(shouldRunSegmentExpiry({ NODE_ENV: 'production' })).toBe(true);
+    expect(shouldRunSegmentExpiry({ NODE_ENV: 'development', SEGMENT_EXPIRY: '1' })).toBe(true);
+    expect(shouldRunSegmentExpiry({ NODE_ENV: 'production', SEGMENT_EXPIRY: '0' })).toBe(false);
+  });
+
+  it('leaves no orphaned timer when two schedules overlap', async () => {
+    // cancel runs at the top, the arm runs after an await. Two concurrent
+    // calls both cancel nothing, then both arm — and the second overwrites
+    // the map entry, leaving the first armed and unreachable. It fires later
+    // on a deadline nobody holds and ends the segment early.
+    let release: (v: unknown) => void = () => {};
+    const gate = new Promise(r => { release = r; });
+
+    // The first call reads a 90s deadline and arms it. The second reads a
+    // 630s one and arms that, overwriting the map entry. The first timer is
+    // then unreachable: every cancel path works through the map.
+    query.mockResolvedValueOnce(segmentRow());
+    const first = scheduleSegmentExpiry(DEBATE, SEGMENT);
+
+    query.mockImplementationOnce(async () => {
+      await gate;
+      return segmentRow({ end_time: new Date(NOW + 600_000).toISOString() });
+    });
+    const second = scheduleSegmentExpiry(DEBATE, SEGMENT);
+
+    await first;
+    release(undefined);
+    await second;
+
+    expect(pendingExpiryCount()).toBe(1);
+
+    // Only the 630s deadline survives, so nothing may fire inside 120s. An
+    // orphan from the first call would end the segment here, nine minutes
+    // early, on a deadline the moderator has already replaced.
+    query.mockResolvedValue(fireRow());
+    await vi.advanceTimersByTimeAsync(120_000);
+    expect(performSegmentEnd).not.toHaveBeenCalled();
+  });
+
+  it('tries again after a transient failure instead of dropping the deadline', async () => {
+    // The timer removes itself before expireSegment runs, and the catch only
+    // logged. One failed LiveKit call therefore disabled expiry for that
+    // segment permanently — back to depending on the moderator's tab.
+    query.mockResolvedValueOnce(segmentRow());
+    await scheduleSegmentExpiry(DEBATE, SEGMENT);
+    query.mockResolvedValue(fireRow());
+    performSegmentEnd.mockRejectedValueOnce(new Error('livekit unreachable'));
+
+    await vi.advanceTimersByTimeAsync(90_000);
+    expect(performSegmentEnd).toHaveBeenCalledOnce();
+
+    await vi.advanceTimersByTimeAsync(EXPIRY_RETRY_MS);
+    expect(performSegmentEnd).toHaveBeenCalledTimes(2);
+  });
+
+  it('gives up loudly rather than retrying for ever', async () => {
+    query.mockResolvedValueOnce(segmentRow());
+    await scheduleSegmentExpiry(DEBATE, SEGMENT);
+    query.mockResolvedValue(fireRow());
+    performSegmentEnd.mockRejectedValue(new Error('livekit unreachable'));
+
+    await vi.advanceTimersByTimeAsync(90_000);
+    for (let i = 0; i < EXPIRY_MAX_ATTEMPTS + 2; i++) {
+      await vi.advanceTimersByTimeAsync(EXPIRY_RETRY_MS);
+    }
+
+    expect(performSegmentEnd).toHaveBeenCalledTimes(EXPIRY_MAX_ATTEMPTS);
+    expect(pendingExpiryCount()).toBe(0);
+  });
+
+  it('stops retrying once an attempt succeeds', async () => {
+    query.mockResolvedValueOnce(segmentRow());
+    await scheduleSegmentExpiry(DEBATE, SEGMENT);
+    query.mockResolvedValue(fireRow());
+    performSegmentEnd.mockRejectedValueOnce(new Error('transient'));
+
+    await vi.advanceTimersByTimeAsync(90_000);
+    await vi.advanceTimersByTimeAsync(EXPIRY_RETRY_MS);
+    expect(performSegmentEnd).toHaveBeenCalledTimes(2);
+
+    await vi.advanceTimersByTimeAsync(EXPIRY_RETRY_MS * 5);
+    expect(performSegmentEnd).toHaveBeenCalledTimes(2);
+    expect(pendingExpiryCount()).toBe(0);
+  });
+
+  it('does not retry when the segment simply is not active any more', async () => {
+    // Not a failure — the moderator got there first. Retrying would be noise.
+    query.mockResolvedValueOnce(segmentRow());
+    await scheduleSegmentExpiry(DEBATE, SEGMENT);
+    query.mockResolvedValue(fireRow({ status: 'completed' }));
+
+    await vi.advanceTimersByTimeAsync(90_000);
+    await vi.advanceTimersByTimeAsync(EXPIRY_RETRY_MS * 3);
+    expect(performSegmentEnd).not.toHaveBeenCalled();
+    expect(pendingExpiryCount()).toBe(0);
   });
 });

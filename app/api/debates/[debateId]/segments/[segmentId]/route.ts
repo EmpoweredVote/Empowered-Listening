@@ -192,7 +192,20 @@ export async function POST(
       // performSegmentEnd so the server-side expiry timer runs the identical
       // path — see lib/debate/end-segment-flow.ts. A segment that expires on
       // the server has to do the whole job, not most of it.
-      const segment = await performSegmentEnd({ debateId, segmentId, moderatorUserId });
+      let segment;
+      try {
+        segment = await performSegmentEnd({ debateId, segmentId, moderatorUserId });
+      } catch (endErr) {
+        // The deadline was dropped above on the assumption this would work.
+        // It did not, so the segment is still active with nothing scheduled
+        // to close it — put the deadline back before surfacing the error, or
+        // a failed End leaves the debate depending on the moderator trying
+        // again, which is the dependency this is meant to remove.
+        await scheduleSegmentExpiry(debateId, segmentId).catch(rearmErr =>
+          console.error('[expiry] could not re-arm after a failed end:', rearmErr),
+        );
+        throw endErr;
+      }
       return NextResponse.json({ segment });
     }
 

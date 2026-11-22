@@ -21,7 +21,7 @@ Scope: Architecture doc Phases 1–5 (Speaker MVP → Observer Streaming → Tra
 - [x] **DEBATE-03**: Moderator can start and end segments from moderator UI (desktop-only)
 - [x] **DEBATE-04**: Lincoln-Douglas segment sequence (7 segments with correct durations) is server-enforced and auto-advances (sequence order enforced in the `start_segment` RPC but not live-verified — E2E Step 9 skipped; server-side auto-expire not implemented, so a closed moderator tab leaves a segment active)
 - [x] **DEBATE-05**: Server-authoritative segment timers with 4-state visual state machine (normal / warning / red_mode / expired); variance target under 200ms across clients (verified at Step 11)
-- [x] **DEBATE-06**: Each speaker has a 60-second bonus time pool tracked in `debate_speakers.bonus_time_seconds`; activates automatically when allocated time expires; does not replenish (pool behaves correctly within a debate, but consumption does not yet call `listening.consume_bonus_time`, so it is not persisted between debates)
+- [x] **DEBATE-06**: Each speaker has a 60-second bonus time pool tracked in `debate_speakers.bonus_time_seconds`; activates automatically when allocated time expires; does not replenish (the pool is spent in `listening.end_segment` under a row lock, so a segment that overruns charges the pool once however many callers race, and `repeat_segment` refunds a discarded take — PR #75. `consume_bonus_time` is not called by anything and remains revoked.)
 - [x] **DEBATE-07**: LiveKit track permissions API enforces mic mute/unmute per active speaker per segment (CX segments: both open)
 - [x] **DEBATE-08**: When a speaker's bonus pool hits zero, LiveKit auto-mutes their mic
 
