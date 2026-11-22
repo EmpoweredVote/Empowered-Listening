@@ -68,10 +68,12 @@ export async function endPrepTime(args: {
   return rows[0];
 }
 
-export async function consumeBonusTime(args: { speakerId: string; seconds: number }): Promise<number> {
-  const { rows } = await pool.query<{ consume_bonus_time: number }>(
-    `SELECT listening.consume_bonus_time($1, $2)`,
-    [args.speakerId, args.seconds],
-  );
-  return rows[0].consume_bonus_time;
-}
+// `consumeBonusTime` used to live here, wrapping listening.consume_bonus_time.
+// It was never called by anything, which is exactly why the bonus pool never
+// depleted. Spending the pool is now part of listening.end_segment (migration
+// 20261122003246), where it is atomic with the status transition and charged
+// only once however many callers race to end the segment.
+//
+// The wrapper is gone rather than left in place because calling it alongside
+// end_segment would charge the pool twice. The RPC itself is left defined and
+// revoked; dropping it is a separate change.
