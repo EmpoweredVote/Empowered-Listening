@@ -30,11 +30,18 @@ export default async function ModeratorTranscriptPage({
         <p className="mt-1 text-sm text-slate-400">
           Click any entry to edit.  Originals are preserved.
         </p>
+        {/*
+          * Points at the share page, not /moderator/[debateId] — that is not a
+          * route and never was, so this link 404'd.  /join/moderator/[debateId]
+          * cannot stand in either: it notFound()s without the ?s=<slotId> this
+          * page has no way to know.  The share page carries the moderator's own
+          * join link, so it is the way back into the debate.
+          */}
         <a
-          href={`/moderator/${debateId}`}
+          href={`/moderator/${debateId}/share`}
           className="mt-2 inline-block text-sm text-blue-400 hover:underline"
         >
-          &larr; Back to debate
+          &larr; Debate links
         </a>
       </header>
 

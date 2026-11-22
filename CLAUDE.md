@@ -157,8 +157,17 @@ fails at verify time, not at boot.
   charged twice and a repeat still refunds the whole of what it cost. The
   invariant is `bonus_time_seconds + SUM(bonus_seconds_used) = 60`; a fourth path
   that stops a clock without charging breaks it silently.
-- **`/moderator/*` has no Next.js middleware gate.** The API is server-side protected on every
-  route; the moderator UI gate is client-side only. Add the middleware before production.
+- ✅ **`/moderator/*` is gated in the layout — not in middleware, and it cannot be.** This app
+  keeps its JWT in localStorage (`ev_token`) and never in a cookie, so `middleware.ts`, which
+  sees only cookies and headers, never learns who is asking. `app/moderator/layout.tsx` wraps
+  every moderator page in `ModeratorGate`, which asks `GET /api/moderator/me`.
+  🔴 **That gate is a rendering decision, not a security boundary.** The real one is
+  `requireModeratorFromRequest` on each API route. The moderator pages render no debate data
+  server-side on purpose: they used to, and because the observer route is anonymous by design a
+  debate id is effectively public, which bought anyone a full transcript with every
+  pre-correction original, or every speaker slot id — and a slot id *is* the capability to claim
+  that seat. A real server-side gate would mean moving the token to a cookie, which brings CSRF
+  into scope. That is an architectural change, and nothing's safety depends on it.
 
 ## Planning
 
