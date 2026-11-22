@@ -71,7 +71,7 @@ export async function endPrepTime(args: {
 // `consumeBonusTime` used to live here, wrapping listening.consume_bonus_time.
 // It was never called by anything, which is exactly why the bonus pool never
 // depleted. Spending the pool is now part of listening.end_segment (migration
-// 20261116000000), where it is atomic with the status transition and charged
+// 20261122003246), where it is atomic with the status transition and charged
 // only once however many callers race to end the segment.
 //
 // The wrapper is gone rather than left in place because calling it alongside

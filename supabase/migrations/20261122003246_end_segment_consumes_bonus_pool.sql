@@ -26,6 +26,13 @@
 --   * a segment ended early, before end_time — there is no overrun to charge
 --   * a segment paused for prep time, where end_time is not a live deadline
 -- ============================================================
+--
+-- The filename carries the version this apply was stamped with, not a round
+-- number: applying through the Supabase API stamps the version at apply time,
+-- and `supabase db push` reads a filename missing from
+-- `supabase_migrations.schema_migrations` as pending and re-runs it. The
+-- obvious tidy-up is to round this off, and that is the change that breaks it.
+-- ============================================================
 
 CREATE OR REPLACE FUNCTION listening.end_segment(
   p_debate_id uuid,
